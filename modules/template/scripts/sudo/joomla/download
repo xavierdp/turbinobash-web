@@ -1,0 +1,26 @@
+#!/bin/bash
+
+template=joomla
+
+. $TB_MODULE_DIR/confs/base
+
+rm -rf $d_tmp $d_stock
+
+mkdir -p $d_tmp
+
+
+curl --silent -L https://downloads.joomla.org/cms/joomla4/4-3-3/Joomla_4-3-3-Stable-Full_Package.tar.gz > $d_tmp/$template.tar.gz
+
+cd $d_tmp 
+echo $d_tmp 
+
+mkdir -p $d_tmp/$template
+cd $d_tmp/$template
+
+tar xzf $d_tmp/$template.tar.gz -C $d_tmp/$template
+
+
+mv -v $d_tmp/$template $d_stock/
+
+ls -lah $d_stock
+

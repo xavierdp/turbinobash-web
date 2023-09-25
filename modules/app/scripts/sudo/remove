@@ -1,0 +1,9 @@
+#!/bin/bash
+
+#C# $(app_list)
+#C--# --force
+
+mode=$(cat /conf/mode)
+
+tb app sudo/way/$mode/remove $@
+

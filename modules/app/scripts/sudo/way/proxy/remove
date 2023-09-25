@@ -1,0 +1,14 @@
+#!/bin/bash
+
+#C# $(app_list)
+#C--# --force
+
+tb_getopt app - $@
+
+[ "$force" = "on" ] || ask_N_stop "are you sure you want remove '$app'"
+
+f_nginx=/etc/nginx/sites-enabled/10-$app.conf
+
+rm -rf $f_nginx
+
+service nginx reload || true

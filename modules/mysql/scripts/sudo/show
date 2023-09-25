@@ -1,0 +1,50 @@
+# kate: syntax bash;
+
+#C# $(sed -e '/^\t*[a-z_]*) #\|^ *[a-z_]*) #/!d' -e 's%) #%%g' $TB_RUN_FILE)
+
+tb_getopt what param= - $@
+
+case "$what" in
+	users) #
+		mysql_user_list
+	;;
+
+	dbs) #
+		mysql_db_list
+	;;
+
+	variables) #
+		SQL="SHOW VARIABLES;"
+		mysql_query mysql
+	;;
+
+	status) #
+		SQL="SHOW STATUS;"
+		mysql_query mysql
+	;;
+
+	processlist) #
+		SQL="SHOW PROCESSLIST;"
+		mysql_query mysql
+	;;
+
+	grants) #
+		SQL="SHOW GRANTS;"
+		mysql_query mysql
+	;;
+
+	grants_for_all) #
+		for i in $(mysql_user_list)
+		do
+			echo $i
+			SQL="SHOW GRANTS FOR $i;"
+			mysql_query mysql
+
+			echo
+		done
+	;;
+esac
+
+
+
+return 0

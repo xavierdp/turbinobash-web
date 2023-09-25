@@ -1,0 +1,47 @@
+#!/bin/bash
+
+function some_times
+{
+	test_var times $1; shift
+
+	[ "$times" = "-1" ] && "$@"
+
+	dir=~/etc/some_times
+	mkdir -p $dir
+	file=$(md5 $@)
+
+	count=$([ -f $dir/$file ] && tail -n 1 $dir/$file || echo 0)
+
+	if [ "$count" -lt "$times" ]
+	then
+		(( count += 1 ))
+		echo $@ > $dir/$file
+		echo $count >> $dir/$file
+		"$@"
+	fi
+
+	return 0
+}
+
+function chr
+{
+	printf \\$(printf '%03o' $1)
+}
+
+function ord
+{
+	printf '%d' "'$1"
+}
+
+function hex
+{
+	printf '%x' "'$1"
+}
+
+function unhex
+{
+	printf \\x"$1"
+}
+
+
+return 0

@@ -1,0 +1,30 @@
+#!/bin/bash
+#DEBUG# begin end
+
+#C# $(tb module list) All
+
+# for i in $(grep ^tb /etc/group | sed 's%:.*%%g'); do groupdel $i; done
+# exit
+
+tb_getopt module - $@
+
+if [ $module = All ]; then
+	buldozer_dir $TB_DIR root root 2755
+	buldozer_dir $TB_DIR_PROFILS root root 2775 644
+	buldozer_dir $TB_DIR_MODULES root root 2755
+
+	for k in $(tb module list)
+	do
+		tb module sudo/buldozer $k
+	done
+else
+	d_module=$TB_DIR_MODULES/$module
+	[ -d $d_module ] || return 0
+
+ 	buldozer_dir $d_module root root 2755 644 --create
+ 	buldozer_dir $d_module/scripts root root 2750 640 --create
+
+	buldozer_dir $TB_DIR root root 2755
+	buldozer_dir $TB_DIR_MODULES root root 2755
+fi
+return 0

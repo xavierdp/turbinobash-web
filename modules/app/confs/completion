@@ -1,0 +1,5 @@
+#!/bin/bash
+
+. $TB_DIR_CURRENT/confs/common
+
+return 0

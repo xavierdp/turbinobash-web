@@ -1,0 +1,49 @@
+#!/bin/bash
+
+[ -z "$(which realpath)" ] && echo "realpath not found !" >&2 && exit 1
+
+TB_DIR=$(realpath $(dirname $0)/../../..)
+
+[ $(id -u) != "0" ] && echo "must to be root !" && exit 1
+
+LANG=C
+
+########################################################################
+mkdir -p /etc/bash_completion.d
+dst=/etc/bash_completion.d/tb
+echo '#!/bin/bash
+# turbinobash execution wrapper
+
+function _tb
+{
+	local TB_DIR CWORD CINDEX
+
+	export TB_DIR='$TB_DIR'
+	export CWORD=${COMP_WORDS[COMP_CWORD]}
+	export CINDEX=$((COMP_CWORD - 1))
+
+	COMP_WORDBREAKS=" "
+	COMPREPLY=($(/bin/bash --norc --noprofile  $TB_DIR/modules/module/wrappers/tb_completion ${COMP_WORDS[@]}))
+
+	return 0
+}
+
+complete -F _tb tb
+' > $dst
+echo "turbinobash completion wrapper installed to '$dst'"
+
+########################################################################
+
+dst=/bin/tb
+echo '#!/bin/bash
+# turbinobash execution wrapper
+
+export TB_DIR='$TB_DIR'
+/bin/bash --norc --noprofile  $TB_DIR/modules/module/wrappers/tb_execution '$dst' $@
+
+exit 0
+' > $dst
+chmod -v 755 $dst
+echo "turbinobash execution wrapper installed to '$dst'"
+
+exit 0

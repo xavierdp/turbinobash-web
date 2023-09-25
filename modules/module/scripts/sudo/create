@@ -1,0 +1,12 @@
+#!/bin/bash
+
+# #C# $(for i in $(tb module list); do domain_shrink_loop | tac | sed 1d | sed "s%^%$i%g"; done)
+
+tb_getopt module - $@
+
+[ -d $TB_DIR_MODULES/$module ] && stop_err "module '$module' exists"
+
+mkdir -p $TB_DIR_MODULES/$module/scripts
+
+
+return 0

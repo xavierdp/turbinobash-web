@@ -1,0 +1,8 @@
+#!/bin/bash
+#C# $(grep ^human: /etc/group | awk -F':' '{print $4}' | sed -e 's%,% %g')
+
+tb_getopt user - $@
+
+groups $user | sed -e 's% %\n%g' | sed -e '/^tb/!d'
+
+# return 0

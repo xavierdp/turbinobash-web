@@ -1,0 +1,58 @@
+#!/bin/bash
+
+#C# All $(app_list)
+#C--# --certbot	--webdomain --www --remove 
+
+mkdir -p /apps
+
+
+email=$(cat /conf/email)
+
+[ -z "$webdomain" ] && webdomain=$(cat /conf/webdomain) || dom_from_cl=on 
+
+tb_getopt app proxy - $@
+
+[ "$remove" == "on" ] && tb app sudo/way/proxy/remove $app --force
+
+# source app confs
+. $TB_MODULE_DIR/templates/proxy.conf
+
+# nginx conf path
+f_nginx=/etc/nginx/sites-enabled/10-$app.conf
+# if [ ! -e $f_nginx ];
+# then 
+
+	# if domain came from --options
+	if [[ "$dom_from_cl" = "on" ]]; then
+		
+		echo "$conf_nginx_dom" > $f_nginx
+
+		# add www if option --www
+		[ "$www" = "on" ] && echo "$conf_nginx_dom_www" > $f_nginx
+	else
+			echo "$conf_nginx_app" > $f_nginx
+	fi
+
+	service nginx reload
+# fi
+cat $f_nginx
+
+
+# SSL certificate creation
+if [[ "$certbot" = "on" ]]; then
+
+	#if domain fcame from command lie 
+	if [[ "$dom_from_cl" = "on" ]]; then
+
+		# webdomain SSL certificat
+		cert="certbot run -n --expand --nginx --agree-tos -d $webdomain -m certbot_email=$email --redirect"
+
+		# webdomain & www.webdomain SSL certificat without redirect
+		[ "$www" = "on" ] && cert="certbot run -n --expand --nginx --agree-tos -d $webdomain -m certbot_email=$email -d www.$webdomain"
+		$cert
+		
+	else
+			# app.webdomain certificat
+			certbot run -n --expand --nginx --agree-tos -d $app.$webdomain -m certbot_email=$email --redirect
+	fi
+fi

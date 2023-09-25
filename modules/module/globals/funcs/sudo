@@ -1,0 +1,12 @@
+#!/bin/bash
+
+VCS_SUDO_CHROOT_DIR=/var/repos
+
+function vcs_sudo_chmod 
+{
+	tb_getopt chmod path - $@
+
+	path=$(realpath $path)
+
+	sudo chmod $path
+}

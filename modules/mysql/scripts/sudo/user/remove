@@ -1,0 +1,7 @@
+#kate: syntax bash;
+
+#C# $(mysql_user_list)
+
+mysql_user_remove $@
+
+return 0

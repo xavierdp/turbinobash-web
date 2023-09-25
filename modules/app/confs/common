@@ -1,0 +1,5 @@
+#!/bin/bash
+
+d_apps=/apps
+
+return 0

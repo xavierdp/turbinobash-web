@@ -1,0 +1,17 @@
+#!/bin/bash
+
+#C# apache nginx hybrid proxy
+#C# 7.3 7.4 8.0 8.1
+#H# mode php email webdomain
+
+tb_getopt mode php email webdomain   - $@
+
+mkdir -p /conf 
+mkdir -p /apps
+
+
+echo $mode > /conf/mode
+echo $php > /conf/php
+echo $email > /conf/email
+echo $webdomain > /conf/webdomain
+

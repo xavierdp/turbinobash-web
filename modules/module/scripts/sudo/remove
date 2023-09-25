@@ -1,0 +1,13 @@
+#!/bin/bash
+
+#C# $(tb module list full | sed 's%module$\|archive$\|profil$\|deb$%%g')
+
+tb_getopt module - $@
+
+[ ! -d $TB_DIR_MODULES/$module ] && stop_err "module '$module' unexistant"
+
+[ -z "$force" ] && ask_N_stop "are you sure to delete module '$module'"
+
+buldozer_del $TB_DIR_MODULES/$module
+
+return 0

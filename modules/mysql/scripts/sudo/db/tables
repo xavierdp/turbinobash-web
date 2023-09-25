@@ -1,0 +1,9 @@
+#kate: syntax bash;
+
+#C# $(mysql_db_list)
+
+tb_getopt db_name - $@
+
+mysql_table_list $db_name
+
+return 0

@@ -1,0 +1,187 @@
+#!/bin/bash
+
+function shell_debug
+{
+	if [ -n "$3" ]
+	then
+		level=$1; shift
+		color=$1; shift
+
+		[[ -n "$TB_DEBUG_LEVEL" && $TB_DEBUG_LEVEL -ge $level ]] && echoc -$color "$@"
+	fi
+
+	return 0
+}
+
+function tb_getopt
+{
+	local tmp var value a_val param m
+
+	n=0
+	while [[ -n "$1" && "$1" != "-" ]]
+	do
+		a_val[$n]=$1
+
+		((n=n+1));shift
+	done
+
+
+	shift
+
+	m=0
+	while [[ -n "$1" && $m -lt $n && $1 =~ ^[^-][^-]* ]]
+	do
+		param=${a_val[$m]}
+ 		eval ${param//=*/}=$1
+
+		((m=m+1));shift
+	done
+
+	while [ $m -lt $n ]; do
+		if [[ ${a_val[$m]} =~ (.*)=(.*) ]]; then
+			eval ${BASH_REMATCH[1]}=${BASH_REMATCH[2]}
+		else
+			stop_err "param '${a_val[$m]}' is missing"
+		fi
+
+		((m=m+1))
+	done
+
+
+	getopts=
+	while [ -n "$1" ]
+	do
+		case $1 in
+			--*=*)
+				tmp=${1##--}
+				var=${tmp//=*}
+				var=${var//-/_}
+				value=${tmp//*=}
+				[ -n "$var" ] && eval $var=$value
+				getopts+="$1 "
+			;;
+
+			--*)
+				var=${1##--}
+				var=${var//-/_}
+				[ -n "$var" ] && eval $var=on
+				getopts+="$1 "
+			;;
+
+# 			*)
+# 				stop_err "param '$1' is not expected"
+# 			;;
+		esac
+
+		shift
+	done
+}
+
+
+c_r1="\E[0;31m"
+c_g1="\E[0;32m"
+c_y1="\E[0;33m"
+c_b1="\E[0;34m"
+c_m1="\E[0;35m"
+c_c1="\E[0;36m"
+c_w1="\E[0;37m"
+
+c_r2="\E[1;31m"
+c_g2="\E[1;32m"
+c_y2="\E[1;33m"
+c_b2="\E[1;34m"
+c_m2="\E[1;35m"
+c_c2="\E[1;36m"
+c_w2="\E[1;37m"
+
+c_r0="\E[2;31m"
+c_g0="\E[2;32m"
+c_y0="\E[2;33m"
+c_b0="\E[2;34m"
+c_m0="\E[2;35m"
+c_c0="\E[2;36m"
+c_w0="\E[2;37m"
+
+c_end="\E[0m"
+
+if [ "$TERM" != "dumb" ]; then
+	function echoc
+	{
+		case "$1" in
+			-n*)
+				color=c_${1#-n}; shift
+  				echo -n -e ${!color}"$@"$c_end
+			;;
+
+			-*)
+				color=c_${1#-}; shift
+   				echo -e ${!color}"$@"$c_end
+			;;
+		esac
+
+		return 0
+	}
+else
+	function echoc
+	{
+		case "$1" in
+			-n*)
+				shift
+ 				echo -n "$@"
+			;;
+
+			-*)
+				shift
+ 				echo "$@"
+			;;
+		esac
+
+		return 0
+	}
+fi
+
+
+function ask_N_stop
+{
+	flag="0"
+
+	while [ $flag = "0" ]
+	do
+		echoc -nr2 "$1 ? : [y/n]"
+		read response
+
+		case "$response" in
+			y*|Y*)
+				flag="1"
+			;;
+
+			n*|N*)
+				stop_ok "user choosed [no] and stopped the script"
+			;;
+		esac
+	done
+
+	return 0
+}
+
+function stop_err
+{
+	echoc -r2 "$@" >&2
+
+  	exit 1
+}
+
+function stop_ok
+{
+	echoc -g2 "$@"
+
+ 	exit 0
+}
+
+function echo_do
+{
+	echoc -g1 $@
+	$@
+
+	return 0
+}

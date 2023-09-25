@@ -1,0 +1,53 @@
+#!/bin/bash
+
+function eth_list
+{
+	ifconfig | grep -e eth | awk '{print $1}' | grep -v :
+
+	return 0
+}
+
+
+function eth_ip
+{
+	local eth
+
+	test_var eth $1
+
+	echo $(ifconfig $eth | grep 'inet ' | sed -e 's%Bcast.*%%' -e 's%.*:%%')
+
+	return 0
+}
+
+function host_ip_list
+{
+	echo $(ifconfig $1 | grep inet | sed -e 's% \+% %g' -e 's%^ %%g' -e '/127.0.0.1/d' | cut -d' ' -f2 | cut -d':' -f2)
+
+	return 0
+}
+
+
+function public_ip
+{
+	echo $(curl --silent http://api.ipify.org)
+
+	return 0
+}
+
+function get_interface
+{
+	echo $(ip link show| grep BROADCAST| awk '{print $2}'|sed "s%:%%g")
+
+	return 0
+}
+function get_interface_ip
+{
+
+	interface=$(get_interface)
+
+	echo $(ip addr show $interface|grep 'inet '|awk '{print $2}'| sed "s%/.*%%g")
+
+	return 0
+}
+
+

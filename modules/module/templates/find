@@ -1,0 +1,16 @@
+#!/bin/bash
+cd /var/lib/turbinobash
+
+date=$(date +'%y%m%d-%H%M%S')
+tar cjf /root/tb-mano-$date.tar.bz2 .
+
+s=includes
+d=funcs
+
+find -type d -name "$s"
+
+
+for i in $(find -type d -name "$s"); do mv $i ${i%%$s}$d; done
+
+echo
+find -type d -name "$d"

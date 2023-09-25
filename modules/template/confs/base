@@ -1,0 +1,5 @@
+d_apps=/apps
+d_app=$d_apps/$app
+d_root=/conf-templates
+d_stock=$d_root/$template
+d_tmp=/tmp/$template

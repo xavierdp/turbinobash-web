@@ -1,0 +1,81 @@
+#!/bin/bash
+
+
+
+function profil_source
+{
+	tb_getopt profil - $@
+
+	for i in \
+		$TB_DIR_PROFILS/$profil/confs/execution \
+		$TB_DIR_PROFILS/$profil/funcs/execution \
+		$TB_DIR_PROFILS/$profil/modules/$TB_MODULE_NAME/funcs/execution \
+		$TB_DIR_PROFILS/$profil/modules/$TB_MODULE_NAME/confs/execution
+	do
+		[ -f $i ] && . $i
+	done
+
+	return 0
+}
+
+function profil_locked
+{
+	[ $# = 0 ] && return 1
+
+	tmp="$@"
+	tmp=${tmp////__}
+	thing=${tmp// /_}
+
+	dir=$TB_DIR_PROFILS/hostname-$(hostname)/locks
+	file=$dir/$thing
+
+	[ -e $file ] && echo locked || echo unlocked
+
+	return 0
+}
+
+
+
+
+function profil_lock
+{
+	[ $# = 0 ] && stop_err "nothing to lock"
+	echoc -g1 "| $TB_PARAMS launched"
+
+	tmp="$@"
+	tmp=${tmp////__}
+	thing=${tmp// /_}
+
+	dir=$TB_DIR_PROFILS/hostname-$(hostname)/locks
+	file=$dir/$thing
+	mkdir -p $dir
+	if [ ! -e $file ]; then
+		touch $file
+
+		echoc -g2 "| $TB_PARAMS processed"
+	fi
+
+	echoc -g1 "| $TB_PARAMS ended"
+	return 0
+}
+
+function profil_unlock
+{
+	[ $# = 0 ] && stop_err "nothing to unlock"
+	echoc -g1 "| $TB_PARAMS launched"	tmp="$@"
+
+	tmp=${tmp////__}
+	thing=${tmp// /_}
+
+	dir=$TB_DIR_PROFILS/hostname-$(hostname)/locks
+	file=$dir/$thing
+
+	if [ -e $file ]; then
+		rm -rf $file
+
+		echoc -g2 "| $TB_PARAMS processed"
+	fi
+
+	echoc -g1 "| $TB_PARAMS ended"
+}
+return 0

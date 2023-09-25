@@ -1,0 +1,45 @@
+#!/bin/bash
+#C--# --nginx --apache --hybride --proxy
+
+if [ "$apache" = "on" ]; then
+  apt purge -y nginx nginx-core python3-certbot-nginx
+fi
+
+if [[ "$nginx" = "on" || "$proxy" = "on" ]]; then
+  apt purge -y apache2-bin python3-certbot-apache
+fi
+
+
+if [[ "$hybride" = "on" || "$nginx" = "on" || "$proxy" = "on" ]]; then
+  apt install -y nginx certbot certbot python3-certbot-nginx
+  
+  rm -f /etc/nginx/sites-enabled/default
+fi
+
+if [[ "$hybride" = "on" || "$apache" = "on" ]]; then
+  apt install -y apache2 libapache2-mod-fcgid certbot python3-certbot-apache
+  
+
+  rm -f /etc/apache2/ports.conf
+fi
+
+if [ "$hybride" = "on" ]; then
+  echo "Listen 4443" > /etc/apache2/ports.conf
+fi
+
+if [ "$apache" = "on" ]; then
+  echo "Listen 443" > /etc/apache2/ports.conf
+  echo "Listen 80" >> /etc/apache2/ports.conf
+fi
+
+if [[ "$hybride" = "on" || "$apache" = "on" ]]; then
+  rm -f /etc/apache2/sites-enabled/000-default.conf
+
+  a2enmod actions rewrite fcgid proxy alias proxy_fcgi ssl || true
+
+  service apache2 restart
+fi
+
+echo WWW > /var/www/html/index.html
+
+apt autoremove -y 

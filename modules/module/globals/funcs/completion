@@ -1,0 +1,142 @@
+#!/bin/bash
+
+for i in string common
+do
+	. $TB_DIR_FUNCS/$i
+done
+
+
+function tb_complete_options
+{
+	local params l
+
+	if [[ $CWORD =~ ^- ]]; then
+		params=$(echo $(extract_long_options ${TB_PARAMS% *}) | sed -e 's% %\n%g' | sed -e 's%=.*%%g')
+		l=$(echo "$@" | sed -e 's% %\n%g' )
+
+		compgen -W "$(for i in $(echo $@ | sed -e 's% %\n%g' | sed -e 's%=.*%%g' | sort -u)
+		do
+ 			echo "$params" | grep "^${i//-/\-}$" > /dev/null || echo "$l" | grep "^${i//-/\-}$\|^${i//-/\-}="
+		done)" -- $CWORD
+
+		exit 0
+	fi
+
+	return 0
+}
+
+
+
+function tb_complete_modules
+{
+	local i
+
+	cd $TB_DIR_MODULES
+
+	if [ $(id -u) = 0 ]; then
+		find -L -mindepth 2 -maxdepth 2 -name "scripts" 2> /dev/null | sed -e "s%./\(.*\)/.*%\1%" -e '/^_/d' -e 's%+.*%%g'
+	else
+		for i in $(find -L -mindepth 2 -maxdepth 2 -name "scripts" 2> /dev/null | sed -e "s%./\(.*\)/.*%\1%" -e '/^_/d' -e 's%+.*%%g')
+		do
+			[ -r $TB_DIR_MODULES/$i/scripts ] && echo $i
+		done
+	fi
+
+	return 0
+}
+
+function tb_complete_scripts
+{
+	local i dir dir2 dir3 fl
+
+	for dom in $(domain_shrink_loop)
+	do
+		[ $dom = + ] && dom=
+
+		dir=$TB_DIR_MODULES/$TB_MODULE_NAME$dom/scripts
+
+		if [[ -d "$dir" && -r "$dir" ]]; then
+			cd $dir
+
+			find -type f -name "[^._]*" 2> /dev/null | sed -e "s%^./%%g" -e "s%^_.*%%g"
+		fi
+	done
+
+	return 0
+}
+
+function thing_complete_scripts
+{
+	local end_path
+
+	[ -d "$TB_THING_DIR" ] || return 0
+
+	if [ "$1" = --module ] ; then
+		end_path=modules/$TB_MODULE_NAME/scripts
+	else
+		end_path=scripts
+	fi
+
+	for dom in $(domain_shrink_loop)
+	do
+		[ $dom = + ] && dom=
+
+		dir=$TB_THING_DIR$dom/$end_path
+
+		if [ -d "$dir" ]; then
+			cd $dir
+
+			find -type f -name "[^._]*" 2> /dev/null | sed -e "s%^./%%g" -e "s%^_.*%%g"
+		fi
+	done
+
+	return 0
+}
+
+
+function compgenw
+{
+	compgen -W "$@" -- $CWORD
+
+	return 0
+}
+
+function compgend
+{
+	compgen -W "$@" -- $CWORD
+
+	local i
+
+	[[ -z "$1" && ! -d $1 ]] && return 0
+	cd $1
+
+  	cword=$CWORD
+  	[ -d "$cword" ] && cword=${cword%%/}/
+
+	for i in $(compgen -d -- $cword)
+	do
+		[ -d $i ] && echo "$i/"
+	done
+
+	return 0
+}
+
+function compgenf
+{
+	local i
+
+	[[ -z "$1" && ! -d $1 ]] && return 0
+	cd $1
+
+  	cword=$CWORD
+  	[ -d "$cword" ] && cword=${cword%%/}/
+
+	for i in $(compgen -f -- $cword)
+	do
+		[ -d $i ] && echo "$i/" || echo $i
+	done
+
+	return 0
+}
+
+return 0

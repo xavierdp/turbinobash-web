@@ -1,0 +1,523 @@
+#!/bin/bash
+
+function dir_md5
+{
+	tb_getopt dir - $@
+
+	[ -d $dir ] || return 0
+
+	{
+		for i in $(find $dir -type f | sed '/md5/d')
+		do
+			cat $i | md5sum
+		done
+
+		find $dir -type d | sed '/md5/d'
+
+	} | md5sum
+
+	return 0
+}
+
+
+function dir_md5_set
+{
+	tb_getopt dir - $@
+
+	dir_md5 $dir > $dir/md5
+
+	return 0
+}
+
+function dir_md5_changed
+{
+	tb_getopt dir - $@
+
+	if [[ ! -f $dir/md5 || $(cat $dir/md5) != $(dir_md5 $dir) ]]; then
+		echo yes
+	else
+		echo no
+	fi
+
+	return 0
+}
+
+
+function profil_get
+{
+	local dom module hn path profil _path f_profil type
+	tb_getopt path - $@
+
+	[ -z "$type" ] && type=file
+	[ "$module" = on ] && module=$TB_MODULE_NAME
+	[ -n "$module" ] && module="/modules/$module"
+	[ -z "$profil" ] && profil=$TB_PROFIL
+
+	f_profil=$TB_DIR_PROFILS/hostname-$hostname/profil
+	if [[ $TB_PROFIL_TYPE = hostname && -f $f_profil ]]; then
+		profil=$(cat $f_profil)
+		profil_name=${profil#*-}
+		profil_type=${profil%%-*}
+
+		hn=on
+	fi
+
+	_path=$TB_DIR_PROFILS/hostname-$hostname$module$path
+	if [[ "$hn" = on && (($type = file && -f $_path) || ($type = dir && -d $_path)) ]]; then
+		echo $_path
+
+		return 0
+	fi
+
+	for dom in $(domain_shrink_loop)
+	do
+		[ $dom = + ] && dom=
+
+		_path=$TB_DIR_PROFILS/$profil$dom$module$path
+
+		if [[ ($type = file && -f $_path) || ($type = dir && -d $_path) ]]; then
+			echo $_path
+
+			return 0
+		fi
+	done
+
+	return 0
+}
+
+
+function profil_export
+{
+	local dom module hn path profil _path f_profil
+
+	tb_getopt profil path destination - $@
+
+	[ "$module" = on ] && module=$TB_MODULE_NAME
+	[ -n "$module" ] && module="/modules/$module"
+
+
+	function install_read
+	{
+		tb_getopt the_user the_group the_perm - $@
+
+		return 0
+	}
+
+# 	profil=$TB_PROFIL
+	f_profil=$TB_DIR_PROFILS/hostname-$hostname/profil
+# TODO ckoi ça ?
+	if [[ $TB_PROFIL_TYPE = hostname && -f $f_profil ]]; then
+		profil=$(cat $f_profil)
+
+		hn=on
+	fi
+
+	list=$(
+		for dom in $(domain_shrink_loop)
+		do
+			[ $dom = + ] && dom=
+
+			_path=$TB_DIR_PROFILS/$profil$dom$module$path
+
+			if [[ -d $_path ]]; then
+				echo $_path
+			fi
+		done
+
+		_path=$TB_DIR_PROFILS/hostname-$hostname$module$path
+		if [[ "$hn" = on && -d $_path ]]; then
+			echo $_path
+		fi
+	)
+
+# 	echoc -y0 "$list"
+
+	hold=$(for _path in $(echo "$list" | tac)
+	do
+		find $_path -mindepth 1 -type f -name ".hold" | sed -e "s%^$_path/%%g" -e "s%/.hold$%%g"
+	done)
+
+
+	for _path in $(echo "$list" | tac)
+	do
+		for dir in $(find $_path -mindepth 1 -type d)
+		do
+			flag=1
+			[ -n "$hold" ] && for h in "$hold"
+			do
+				[[ "$dir" =~ ^$_path/$h* ]] && flag=0
+			done
+
+			if [ $flag = 1 ]; then
+
+				chroot=${dir#$TB_DIR_PROFILS/[^/]*/${module#/}$path}
+				dst=$destination$chroot
+
+ 				mkdir -p $dst
+				the_user=root
+				the_group=root
+				the_perm=755
+
+				file=$dir/.install
+				[ -f $file ] &&	install_read $(sed -e '/^#INSTALL#/!d' -e 's%^#INSTALL# *%%' $file)
+
+ 				chown $the_user		$dst
+ 				chgrp $the_group 	$dst
+ 				chmod -s			$dst
+ 				chmod $the_perm		$dst
+
+ 				echo "$dst <=> $the_user $the_group $the_perm"
+			fi
+		done
+	done | column -t || true
+
+# 	echoc -y0 "$hold"
+
+	files=$(for _path in $(echo "$list" | tac)
+	do
+		for f in $(find $_path -mindepth 1 -type f ! -name ".install")
+		do
+			flag=1
+			[ -n "$hold" ] && for h in "$hold"
+			do
+				[[ "$f" =~ ^$_path/$h* ]] && flag=0
+			done
+
+			[ $flag = 1 ] && echo $f
+		done
+	done)
+
+
+#   	echo "$files" | tac
+#   	echo
+#
+# 	exit;
+
+	copy_list=$(for _path in $(echo "$list" | tac)
+	do
+ 		for i in $(echo "$files" | grep ^$_path)
+ 		do
+			echo $i
+  			files=$(echo "$files" | sed -e "/$(echo $path${i#$_path} | sed -e 's%/%\\/%g')$/d")
+ 		done
+	done)
+
+
+	installed_files=$(for src in $copy_list
+	do
+		the_user=root
+		the_group=root
+		the_perm=644
+
+		is_text=0
+		[ -n "$(file $src | grep 'text')" ] && is_text=1
+
+		install_file=
+		if [ $is_text = 1 ]
+		then
+			install_file=$src
+		else
+			[ -e $src.install ] && install_file=$src.install
+		fi
+
+		[ -e "$install_file" ] && grep '^#INSTALL#' $install_file > /dev/null && install_read $(sed -e '/^#INSTALL#/!d' -e 's%^#INSTALL# *%%' $install_file)
+
+		chroot=${src#$TB_DIR_PROFILS/[^/]*/${module#/}$path}
+		dst=$destination$chroot
+
+# 		echoc -y0 $src
+# 		echoc -y1 $destination $chroot $path
+
+		flag_hold=0
+		[ -e $dst.hold ] && flag_hold=1
+		[ -e $src.hold ] && flag_hold=1
+
+		[[ $is_text = 1 && -e $dst ]] && grep "^#HOLD#" $dst > /dev/null && flag_hold=1
+		grep "^#HOLD#" $src > /dev/null && flag_hold=1
+
+# 		echoc -r0 $flag_hold
+
+		if [ $flag_hold = 0 ]
+		then
+			if grep '__[a-zA-Z_0-9]*__' $src > /dev/null ; then
+				tmp=$(cat $src)
+
+				ITSELF_PATH=$chroot
+				ITSELF_FILE=$(basename $ITSELF_PATH)
+				ITSELF_DIR=$(dirname $ITSELF_PATH)
+
+				for j in $(grep -o "__[a-zA-Z_0-9-]*__" $src | sort -u | sed 's%__%%g')
+				do
+					echo "$src => '__${j}__' to '${!j}'"
+					tmp=$(echo "$tmp" | sed -e "s%__${j}__%${!j}%g")
+				done
+
+				echo "$tmp" > $dst
+				echo >> $dst
+
+			else
+				cp $src $dst
+			fi
+
+			echo "_file $dst' <=> $the_user $the_group $the_perm"
+
+# 			[ -L $i ] && continue
+
+			chown $the_user	$dst
+			chgrp $the_group $dst
+			chmod $the_perm	$dst
+
+			if [[ -n "$true_wd" && -x "$true_wd/bin/bash" && -e "$dst" && -n "$(grep '^#CHROOT_RUN#' $dst)" ]]; then
+				sed -e '/^#CHROOT_RUN#/!d' -e 's%^#CHROOT_RUN# *%%' $dst > $true_wd/chroot
+				chroot $true_wd /bin/bash /chroot
+				rm $true_wd/chroot
+			fi
+
+		fi
+	done)
+
+
+	echo
+	echo "$installed_files" | sed -e "/^_file/!d" -e 's%^_file *%%g' | column -t
+	echo
+	echo "$installed_files" | sed -e "/^_file/d"
+	echo
+
+	return 0
+}
+
+
+
+function archive_export_profil
+{
+	local profil archive destination
+	tb_getopt profil archive destination - $@
+
+	for dom in $(domain_shrink_loop_reverse)
+	do
+		[ $dom = + ] && dom=
+
+		archive_file=$TB_DIR_PROFILS/$profil$dom/modules/conf/archives/$archive.tar.bz2
+
+		if [ ! -f $archive_file ]
+		then
+			echoc -y0 "$profil$dom $archive unexistant"
+
+			continue
+		fi
+		echoc -g1 "$profil$dom $archive existant"
+
+		if [ -f $archive_file ]
+		then
+			dir=${archive//__//}
+
+			mkdir -pv $destination/$dir
+
+			tar xvjf $archive_file -C $destination/$dir
+		fi
+	done
+
+	return 0
+}
+
+
+
+
+
+
+function tb_log
+{
+	echo $(date +"%Y-%m-%dT%H:%M:%S") "|" $(id -un) "|" $TB_PARAMS "|" "$@" >> $TB_LOG_FILE
+
+	return 0
+}
+
+function buldozer_dir
+{
+	local user group path chmod_dir chmod_file
+
+	tb_getopt path user group chmod_dir chmod_file= - $@
+
+	if [[ (! -d $path && -n "$create") || -e $path  ]]
+	then
+		mkdir -p $path
+		chown $user $path
+		chgrp $group $path
+		chmod $chmod_dir $path
+
+		if [ -n "$chmod_file" ]
+		then
+			set +e
+ 			find $path -type d -exec chmod $chmod_dir  {} \; -exec chown $user\:$group {} \;
+ 			find $path -type f -exec chmod $chmod_file {} \; -exec chown $user\:$group {} \;
+			set -e
+			shell_debug 2 c0 "$FUNCNAME $@ recursive processed"
+		else
+			shell_debug 2 c0 "$FUNCNAME $@ simple processed"
+		fi
+	fi
+
+	return 0
+}
+
+function buldozer_dir_gvfs
+{
+	local user group path chmod_dir chmod_file thing
+
+	tb_getopt path user group chmod_dir chmod_file= - $@
+
+	if [[ (! -d $path && -n "$create") || -e $path  ]]
+	then
+		mkdir -p $path
+		chown $user $path
+		chgrp $group $path
+		chmod $chmod_dir $path
+
+		if [ -n "$chmod_file" ]
+		then
+ 			find $path | sed -e '/gvfs/d' | while read thing
+			do
+				chown $user\:$group $thing
+				[ -d $thing ] && chmod $chmod_dir $thing || chmod $chmod_file $thing
+			done
+
+			shell_debug 2 c0 "$FUNCNAME $@ recursive processed"
+		else
+			shell_debug 2 c0 "$FUNCNAME $@ simple processed"
+		fi
+	fi
+
+	return 0
+}
+
+function buldozer
+{
+	local maxdepth mindepth name acl echo path type do_it user group mod acld
+	eval_params_options - $@
+
+	[ -n "$maxdepth" ] && maxdepth="-maxdepth $maxdepth"
+	[ -n "$mindepth" ] && mindepth="-maxdepth $mindepth"
+	[ -n "$type" ] && type="-type $type"
+	[ -n "$name" ] && name="-name '$name'"
+	[ -n "$acl" ] && acl="-exec setfacl -m $acl {} \;"
+	[ -n "$echo" ] && echo="-exec echo {} \;"
+	[ -n "$user" ] && user="-exec chown $user {} \;"
+	[ -n "$group" ] && group="-exec chgroup $group {} \;"
+	[ -n "$mod" ] && mod="-exec chmod  $mod {} \;"
+
+ 	[ -n "$acld" ] && acld="-exec setfacl -m $acld,$(echo $acld | sed -e 's%,g:%,d:g:%g' -e 's%,u:%,d:u:%g' -e 's%,o:%,d:o:%g') {} \;"
+
+ 	do_it="find $path $maxdepth $mindepth $type $name $echo $acl $acld $user $group $mod"
+
+ 	echoc -y1 $do_it
+
+  	eval $do_it
+	return 0
+}
+
+
+
+
+
+# function buldozer_cp
+# {
+# 	shell_debug 2 y0 "$FUNCNAME $@ launched"
+#
+# 	local user group src_path dst_path chmod_dir chmod_file
+#
+# 	tb_getopt path user group chmod_dir chmod_file= - $@
+#
+# 	if [[ (! -d $path && -n "$create") || -e $path  ]]
+# 	then
+# 		mkdir -p $path
+# 		chown $user $path
+# 		chgrp $group $path
+# 		chmod $chmod_dir $path
+#
+# 		if [ -n "$chmod_file" ]
+# 		then
+# 			find $path -type d -exec chmod $chmod_dir {} \;
+# 			find $path -type f -exec chmod $chmod_file {} \;
+# 			chown $user $path -R
+# 			chgrp $group $path -R
+# 			shell_debug 2 y1 "$FUNCNAME $@ recursive processed"
+# 		else
+# 			shell_debug 2 y1 "$FUNCNAME $@ simple processed"
+# 		fi
+# 	fi
+#
+# 	shell_debug 2 y0 "$FUNCNAME $@ ended"
+#
+# 	return 0
+# }
+
+
+function buldozer_file
+{
+	local user group path chmod
+
+	tb_getopt path user group chmod - $@
+
+	if [[ (! -e $path && -n "$create") || -e $path  ]]
+	then
+		touch $path
+		chown $user $path
+		chgrp $group $path
+		chmod $chmod $path
+
+		shell_debug 2 c0 "$FUNCNAME $@ processed"
+	fi
+
+	return 0
+}
+
+
+function buldozer_del
+{
+	local path
+
+	tb_getopt path - $@
+
+	if [ -e $path ]
+	then
+		rm $path -rf
+
+		shell_debug 2 c0 "$FUNCNAME $@ processed"
+	fi
+
+	return 0
+}
+
+
+
+function columnize_file
+{
+	local src_file dst_file TMPFILE
+
+	tb_getopt src_file dst_file= - $@
+
+	if [ -e "$src_file" ]
+	then
+		if [ -n "$dst_file" ]
+		then
+			column -t $src_file > $dst_file
+		else
+			TMPFILE=$(mktemp) || stop_err "$FUNCNAME $@ canot create a temp file"
+			column -t $src_file > $TMPFILE
+			cat $TMPFILE > $src_file
+			rm $TMPFILE
+		fi
+
+		shell_debug 2 c0 "$FUNCNAME $@ processed"
+	fi
+
+	return 0
+}
+
+function uncomment_file
+{
+	[[ -n "$1" && -e "$1" ]] && sed -e 's%#.*%%g' -e '/^$/d' -e 's%  *% %g' $1
+
+	return 0
+}
+

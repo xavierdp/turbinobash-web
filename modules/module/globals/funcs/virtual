@@ -1,0 +1,521 @@
+#!/bin/bash
+
+function virtual_format_reiserfs
+{
+	echo mkreiserfs $@
+	mkreiserfs $@ -q -f 3>&1 1>&- 2>&3 | sed '1,2d' 1>&2
+
+	return 0
+}
+
+function virtual_grsec_off
+{
+	local grsec
+
+	for i in chroot_deny_pivot chroot_deny_mknod
+	do
+		grsec=/proc/sys/kernel/grsecurity/$i
+		[ -e $grsec ] && echo 0 > $grsec
+	done
+
+	return 0
+}
+
+function virtual_grsec_on
+{
+
+	return 0
+}
+
+function virtual_wd
+{
+	[[ -z "$true_wd" && -n "$1" ]] && true_wd=$1
+
+	[ -z "$TB_DIR_TMP" ] && TB_DIR_TMP=/tmp/tb
+
+	[[ -z "$true_wd" && -z "$1" ]] && true_wd=$TB_DIR_TMP/wd/$(echo $TB_PARAMS | md5sum | sed 's% .*%%g')
+
+	[ -d "$true_wd" ] && true_wd=$(realpath $true_wd)
+
+# 	[[ $true_wd =~ ^$TB_DIR_TMP* ]] || stop_err "true_wd not in $TB_DIR_TMP"
+
+	return 0
+}
+
+function virtual_wd_tree_clean
+{
+	virtual_wd
+
+	find $true_wd/var/cache/apt 	-type f -exec rm {} \;
+	find $true_wd/var/lib/apt/lists -type f -exec rm {} \;
+
+	return 0
+}
+
+function virtual_wd_archive_create
+{
+	local file
+
+	virtual_wd
+
+  	mkdir -pv $TB_DIR_TEMPLATES
+	file=$TB_DIR_TEMPLATES/$TB_PROFIL-$distrib-$arch+$hostname.tar.bz2
+
+	echo_do tar cjf $file  -C $true_wd .
+
+	return 0
+}
+
+function virtual_wd_debootstrap
+{
+	virtual_wd
+
+	cd $true_wd
+
+	echo_do debootstrap \
+	--include=ubuntu-keyring \
+	--arch=$arch \
+	$([ $variant = base ] || echo "--variant=$variant") \
+	$distrib $true_wd $TB_DEBOOTSTRAP_SOURCE
+
+	return 0
+}
+
+function virtual_wd_rm_cd
+{
+	virtual_wd
+
+	mkdir -pv $TB_DIR_TMP && cd $TB_DIR_TMP
+
+	rm -rf   	$true_wd
+	mkdir -p	$true_wd
+	cd   		$true_wd
+
+	echoc -g1 "$FUNCNAME '$PWD'"
+
+	return 0
+}
+
+function virtual_wd_rm
+{
+	virtual_wd
+
+	mkdir -pv $TB_DIR_TMP && cd $TB_DIR_TMP
+
+	cd $TB_DIR_TMP
+
+ 	rm -rf 		$true_wd
+
+	echoc -g1 "$FUNCNAME '$PWD'"
+
+	return 0
+}
+
+function virtual_wd_cd
+{
+	virtual_wd
+
+	mkdir -pv $TB_DIR_TMP && cd $TB_DIR_TMP
+
+	[ -d $true_wd ] && cd $true_wd
+
+	echoc -g1 "$FUNCNAME '$PWD'"
+
+	return 0
+}
+
+function virtual_wd_tmp
+{
+	mkdir -pv $TB_DIR_TMP && cd $TB_DIR_TMP
+
+	echoc -g1 "$FUNCNAME '$PWD'"
+
+	return 0
+}
+
+
+function virtual_wd_chroot_mount_on
+{
+	local dir
+
+	virtual_wd
+
+	dir=$true_wd/proc
+	[[ -d $dir && dir=$(realpath $dir) && -z "$(mount | grep $dir)" ]] 	&& \
+		echo_do mount -v -o bind /proc $dir
+
+	dir=$true_wd/sys
+	[[ -d $dir && dir=$(realpath $dir) && -z "$(mount | grep $dir)" ]] 	&& \
+		echo_do mount -v -o bind /sys $dir
+
+	dir=$true_wd/dev/pts
+	[[ -d $dir && dir=$(realpath $dir) && -z "$(mount | grep $dir)" ]] 	&& \
+		echo_do mount -v -o bind /dev/pts $dir
+
+	return 0
+}
+
+function virtual_wd_chroot_mount_off
+{
+ 	virtual_wd
+
+	for i in $true_wd/proc $true_wd/sys $true_wd/dev/pts
+	do
+		[ -d "$i" ] && i=$(realpath $i) || continue
+
+		[ -n "$(mount | grep $i)" ] && echo_do umount -v $i
+	done
+
+	return 0
+}
+
+function virtual_wd_etc__hostname
+{
+	virtual_wd
+
+	if [ -n "$1" ]; then
+		echo $1	> $true_wd/etc/hostname
+
+		return 0
+	fi
+
+# 	if [ $hostname = $(hostname) ]; then
+# 		echo "$TB_PROFIL_NAME.$hostname"						> $true_wd/etc/hostname
+# 	else
+		echo "$hostname" > $true_wd/etc/hostname
+# 	fi
+
+	echo_do cat $true_wd/etc/hostname
+
+	return 0
+}
+
+function virtual_wd_etc__hosts
+{
+	virtual_wd
+
+	if [ -n "$1" ]; then
+		echo "127.0.0.1	localhost $1" 	> $true_wd/etc/hosts
+
+		return 0
+	fi
+
+# 	if [ $hostname = $(hostname) ]; then
+# 		echo "127.0.0.1	localhost $TB_PROFIL_NAME.$hostname" 	> $true_wd/etc/hosts
+# 	else
+		echo "127.0.0.1	localhost $hostname" 	> $true_wd/etc/hosts
+# 	fi
+
+	echo_do cat $true_wd/etc/hosts
+
+	return 0
+}
+
+
+
+function virtual_wd_loop_cleaner2
+{
+	virtual_wd
+
+	local loop
+	echoc -y1 "### $FUNCNAME 0 ###"
+	virtual_wd_mount_cleaner
+	sleep 1 && sync
+
+	echoc -y1 "### $FUNCNAME 1 ###"
+
+	for vg in $(vgdisplay | grep "VG Name" | awk '{print $NF}' | grep ^fs)
+	do
+		echo_do vgchange -a n $vg | cat
+		echo_do vgexport $vg | cat
+	done
+
+	sleep 1 && sync
+
+	echoc -y1 "### $FUNCNAME 2 ###"
+
+	for loop in $(losetup -a | awk -F':' '{print $1}')
+	do
+		[ -n "$(kpartx -l $loop 2> /dev/null)" ] && kpartx -dv $loop
+
+		sleep 1 && sync
+
+		losetup -d -v $loop
+		echo "unloop $loop"
+	done
+
+	echoc -y1 "### $FUNCNAME 3 ###"
+
+	return 0
+}
+
+
+function virtual_wd_mount_cleaner
+{
+	tb_getopt - $@
+
+	virtual_wd
+
+	echoc -y1 "### $FUNCNAME 0 ###"
+	mount | grep $true_wd | cat
+	echoc -y1 "### $FUNCNAME 1 ###"
+
+	cd $TB_DIR_TMP
+	for i in $(mount | grep $true_wd | awk '{print $3}' | sort -r)
+	do
+		if [ "$mode" = host ]; then
+			echo_do umount -v -f $(mount | grep " $i " | awk '{print $1}')
+		else
+			echo_do umount -v -f $(mount | grep " $i " | awk '{print $3}')
+		fi
+	done
+
+	echoc -y1 "### $FUNCNAME 2 ###"
+
+	return 0
+}
+
+
+function virtual_grub_install
+{
+	local grub_dev
+	tb_getopt grub_dev - $@
+
+	echo "device (hd0) $grub_dev
+	root (hd0,0)
+	setup (hd0)" | grub --batch --device-map==/dev/null
+
+	echo
+
+	return 0
+}
+
+# function virtual_invoke_rc_d
+# {
+# 	case "$1" in
+# 		on)
+# 			echo '[ -s /usr/sbin/invoke-rc.d ] && cp /usr/sbin/invoke-rc.d /usr/sbin/invoke-rc.d.REAL'
+# 			echo '> /usr/sbin/invoke-rc.d'
+# 		;;
+#
+# 		off)
+# 			echo '[ -f /usr/sbin/invoke-rc.d.REAL ] && cp /usr/sbin/invoke-rc.d.REAL /usr/sbin/invoke-rc.d'
+# 			echo 'rm -rf /usr/sbin/invoke-rc.d.REAL'
+# 		;;
+# 	esac
+#
+# 	return 0
+# }
+
+
+function virtual_chroot_script
+{
+	case "$1" in
+		start)
+			echo '#!/bin/bash'
+			echo 'set -e'
+			echo '[ "$(cat /usr/sbin/invoke-rc.d | wc -l)" -gt 1 ] && cp -v /usr/sbin/invoke-rc.d /usr/sbin/invoke-rc.d.REAL'
+			echo 'echo "exit 0" > /usr/sbin/invoke-rc.d'
+			echo 'export DEBIAN_FRONTEND=noninteractive'
+			echo 'export DEBCONF_NONINTERACTIVE_SEEN=true'
+			echo '#START#'
+			echo
+		;;
+
+		end)
+			echo
+			echo '#END#'
+			echo '[ -f /usr/sbin/invoke-rc.d.REAL ] && cp -v /usr/sbin/invoke-rc.d.REAL /usr/sbin/invoke-rc.d'
+			echo 'rm -vrf /usr/sbin/invoke-rc.d.REAL'
+			echo 'exit 0'
+		;;
+	esac
+
+	return 0
+}
+
+
+
+
+
+
+function virtual_wd_archive_test
+{
+
+	virtual_wd_archive_populate
+
+	if [[ "$force" = on || (-n "$force" && "$force" -gt 0) ]]; then
+ 		rm -rf $archive
+
+		[ "$force" != on ] && ((force=force-1))
+
+		echo "Go"
+ 	else
+ 		if [ -f "$archive" ]; then
+			echo "Stop"
+		else
+			echo "Go"
+		fi
+	fi
+
+	return 0
+}
+
+function virtual_wd_chroot_run
+{
+	virtual_wd
+
+	list=$(echo "$@" | sed -e 's% *%%g' -e 's%#.*%%g')
+
+	cd $true_wd
+
+	dir=$true_wd/chrooted-scripts
+	if [ -d $dir ]; then
+		cd $dir
+
+		list2=$(
+			[ -n "$list" ] && for script in $list
+			do
+				find -type f -name "$script-[0-4][0-9]*"
+				find -type f -name "$script"
+				find -type f -name "$script-[5-9][0-9]*"
+			done | sed 's%\./%%g'
+		)
+
+		echoc -c0 "$list2"
+
+		cd $true_wd
+
+		[ -d tmp/ ] || stop_err "debootstrap missing"
+
+
+		{
+			echo '
+ 			apt-get update
+		'
+		} > root/chroot.sh
+
+		chroot .  bash /root/chroot.sh
+		rm root/chroot.sh
+
+
+		for script in $list2
+		do
+			f_script=chrooted-scripts/$script
+
+			start=$(grep -n '^#START#' $f_script | sed 's%:.*%%g')
+			[ -n "$start" ] && sed -i "1,${start}d" $f_script
+			end=$(grep -n '^#END#' $f_script | sed 's%:.*%%g')
+			[ -n "$end" ] && sed -i "$((end -1)),$(cat $f_script | wc -l )d" $f_script
+
+	 		cp $f_script tmp/process
+	 		virtual_chroot_script start > $f_script
+	 		cat tmp/process >> $f_script
+	 		virtual_chroot_script end >> $f_script
+	 		rm tmp/process
+
+	 		echo_do chroot . bash $f_script
+		done
+	fi
+
+	return 0
+}
+
+function virtual_wd_import_host
+{
+	for i in /etc/resolv.conf /etc/hostname /etc/hosts
+	do
+		cp --parent -va $i $true_wd
+	done
+
+	return 0
+}
+
+function virtual_wd_users
+{
+
+# 	[ -e $true_wd/tmp/users ] && return 0
+
+	f_users=$(thing_get /templates/users --module=fromscratch)
+
+	[ -f "$f_users" ] && users_to_install=""$(for user in $(cat $f_users)
+	do
+		echo tb-user-$user
+	done)
+
+	echo "$users_to_install"
+
+	if [ -n "$users_to_install" ]; then
+		{
+			virtual_chroot_script start
+			echo '
+			export hostname='$hostname'
+			apt-get update
+			apt-get dist-upgrade -y
+			apt-get install -y '$users_to_install'
+			tb deb sudo/tb/spacialize
+
+			[[ -n "$(which mysql)" && -d '$TB_DIR_MODULES'/mysql ]] && tb mysql sudo/chroot/start
+
+			for user in '$(echo "$users_to_install" | sed 's%^tb-user-%%g')'
+			do
+				tb user sudo/create $user --system-from-tb --mysql-from-tb
+			done
+
+			[[ -n "$(which mysql)" && -d '$TB_DIR_MODULES'/mysql ]] && tb mysql sudo/chroot/stop
+
+		'
+		virtual_chroot_script end
+		} > root/chroot.sh
+
+		chroot .  bash /root/chroot.sh
+		rm root/chroot.sh
+	fi
+
+	touch $true_wd/tmp/users
+
+	return 0
+}
+
+function virtual_wd_banner
+{
+	dir=$true_wd/etc/tb
+	mkdir -p $dir
+
+	[ -n "$TB_PROFIL" ] && echo $TB_PROFIL > $dir/profil
+	[ -n "$TB_THING" ] && echo $TB_PROFIL > $dir/thing
+	echo $distrib > $dir/distrib
+	echo $arch > $dir/arch
+
+	echo "$TB_THING_TYPE-$TB_THING_NAME ($TB_PROFIL_NAME) $distrib-$arch" > $true_wd/etc/tb/banner
+
+	return 0
+}
+
+function virtual_wd_root_cleaner
+{
+	{
+		virtual_chroot_script start
+		echo '
+			rm -rf /root
+			mkdir -p /root/.ssh
+
+			rm -rf /etc/skel
+			mkdir -p /etc/skel
+
+			find /root -type d -exec chmod 700 {} \;
+			find /root -type f -exec chmod 600 {} \;
+
+			touch /var/mail/root
+			chmod 600 /var/mail/root
+
+		'
+		virtual_chroot_script end
+	} > $true_wd/root/chroot.sh
+	chroot $true_wd bash /root/chroot.sh
+
+	return 0
+}
+
+
+return 0

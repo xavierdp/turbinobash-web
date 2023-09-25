@@ -1,0 +1,328 @@
+#kate: syntax bash;
+
+. $TB_DIR_CURRENT/funcs/common
+
+
+# mysql -u$USER -p$(cat ~/etc/mysql/localhost/passwd)
+
+function mysql_user_populate
+{
+	tb_getopt user_host - $@
+
+	db_user=${user_host%@*}
+
+	[[ "$user_host" =~ @(.*) ]] && db_host_from=${BASH_REMATCH[1]}
+
+	[ -z "$db_host_from" ] && db_host_from=localhost
+	[ -z "$db_host_to" ] && db_host_to=localhost
+
+	return 0
+}
+
+function mysql_user_exists
+{
+	local db_user db_host SQL
+
+	mysql_user_populate $@
+
+	SQL="SELECT DISTINCT CONCAT(user,'@',host) FROM user WHERE user='$db_user' AND host='$db_host_from';"
+
+	if [ -n "$db_host_to" ]; then
+		the_host="-h $db_host_to"
+	fi
+
+	mysql_query mysql $the_host
+
+	return 0
+}
+
+function mysql_user_create
+{
+	local db_user db_host db_passwd SQL
+
+	mysql_user_populate $@
+
+	[[ $db_user = root && ( -z "$db_host" || "$db_host_from" = "localhost" ) ]] && return 0
+
+
+   	if [ -z "$(mysql_user_exists $user_host)" ]; then
+  		SQL="CREATE USER '$db_user'@'$db_host_from';"
+		echoc -c0 "$SQL"
+
+		if [ -n "$db_host_to" ]; then
+			the_host="-h $db_host_to"
+		fi
+
+		mysql_query mysql $the_host
+   	fi
+
+	return 0
+}
+
+function mysql_user_remove
+{
+	local db_user db_host SQL force
+
+	mysql_user_populate $@
+
+	[[ $db_user = root && ( -z "$db_host_from" || "$db_host_from" = "localhost" ) ]] && return 0
+
+	if [ -n "$(mysql_user_exists $user_host)" ]; then
+		[ "$force" = on ] || ask_N_stop "are you sure you want remove mysql user '$db_user'@'$db_host'"
+
+		SQL+="DROP USER '$db_user'@'$db_host_from';"
+		SQL+="FLUSH PRIVILEGES;"
+		echoc -c0 "$SQL"
+
+		if [ -n "$db_host_to" ]; then
+			the_host="-h $db_host_to"
+		fi
+
+		mysql_query mysql $the_host
+
+		if [ -n "$(system_user_exists $db_user)" ]; then
+			home=$(system_user_home_dir $db_user)
+
+			dir=$home/etc/mysql/$db_host
+			[ -d $dir ] && rm -rf $dir
+
+			set +e
+			rmdir $home/etc/mysql 2> /dev/null
+			set -e
+		fi
+	fi
+
+	return 0
+}
+
+function mysql_root_passwd
+{
+	local db_user db_passwd SQL dir
+
+	mysql_user_populate root
+	[ "$force" = on ] || ask_N_stop "are you sure you want change root password (mysld will be restarted)"
+
+
+db_passwd=$(gen_urandom_passwd 10)
+
+	echo "[client]
+user=root
+password=$db_passwd
+"	> /root/.my.cnf
+	
+	service mariadb stop
+
+	mysql_chroot_start --skip-grant-tables
+
+	echo "UPDATE mysql.global_priv SET priv=json_set(priv,'$.plugin', 'mysql_native_password', '$.authentication_string', PASSWORD('$db_passwd')) WHERE User='root';" | mysql -uroot mysql
+	echo "DELETE FROM mysql.global_priv WHERE User='root' AND Host NOT IN ('localhost', '127.0.0.1', '::1');"| mysql -uroot mysql
+	echo "DELETE FROM mysql.global_priv WHERE User='';"| mysql -uroot mysql
+
+	mysql_chroot_stop
+	service mariadb restart
+	cat /root/.my.cnf
+	return 0
+}
+
+function mysql_chroot_start
+{
+	mysql_chroot_stop
+
+
+	# mysqld --skip-networking --open-files-limit=512 $@ &
+
+	systemctl set-environment MYSQLD_OPTS="--skip-grant-tables --skip-networking"
+	systemctl start mariadb
+
+	# while [ ! -e /var/run/mysqld/mysqld.sock ]
+	# do
+	# 	echo sleep 1
+	# 	sleep 1
+	# done
+
+	return 0
+}
+
+function mysql_chroot_stop
+{
+	killall -9 mysqld && sleep 1 || true
+	killall -9 mariadb && sleep 1 || true
+
+	service mysql stop
+	service mariadb stop
+
+	rm -fv /var/run/mysqld/mysqld.sock
+
+	return 0
+}
+
+
+function mysql_user_passwd
+{
+	local db_user db_host db_passwd SQL dir d_home
+
+	mysql_user_populate $@
+
+	[[ $db_user = root && ( -z "$db_host_from" || "$db_host_from" = "localhost" ) ]] && return 0
+
+	[ -z "$db_passwd" ] && db_passwd=$(gen_urandom_passwd 10)
+
+	if [ -n "$(system_user_exists $db_user)" ]; then
+		d_home=$(system_user_home_dir $db_user)
+
+		if [ -n "$d_home" ]; then
+			dir=$d_home/etc/mysql/$db_host_to
+
+			if [[ -e $dir/passwd && "$keep_old" = on ]]; then
+				db_passwd=$(cat $dir/passwd)
+			fi
+
+			if [[ "$crypted" = on ]];then
+				rm -f $dir/passwd
+			else
+				mkdir -pv $dir
+				echo $db_passwd > $dir/passwd
+			fi
+
+			if [ -n "$(echo $d_home | grep ^/home)" ]; then
+				find $d_home/etc -type d -exec chmod 700 {} \;
+				find $d_home/etc -type f -exec chmod 600 {} \;
+
+				chown $db_user\: $d_home/etc -R
+			fi
+		fi
+	fi
+
+	if [ "$crypted" = on ]; then
+		SQL="SET PASSWORD FOR \`$db_user\`@\`$db_host_from\` = '$db_passwd';"
+	else
+		SQL="SET PASSWORD FOR \`$db_user\`@\`$db_host_from\` = PASSWORD('$db_passwd');"
+	fi
+
+	SQL+="FLUSH PRIVILEGES;"
+	echoc -c0 "$SQL"
+
+	if [ -n "$db_host_to" ]; then
+		the_host="-h $db_host_to"
+	fi
+
+	mysql_query mysql $the_host
+	return 0
+}
+
+function mysql_grant
+{
+	tb_getopt user_host mode db_name= - $@
+
+	mysql_user_populate $@
+
+	if [ -n "$(system_user_exists $db_user)" ]; then
+		home=$(system_user_home_dir $db_user)
+
+		if [ -n "$(mysql_user_exists $user_host)" ]; then
+			[[ $db_user = root && ( -z "$db_host_from" || "$db_host_from" = "localhost" ) ]] && stop_err "root can't be granted !"
+
+			case "$mode" in
+				revoke)
+					if [ -z "$db_name" ]; then
+						SQL="REVOKE ALL PRIVILEGES ON "$'\52'" . "$'\52'" FROM '$db_user'@'$db_host_from';"
+						SQL+="REVOKE GRANT OPTION ON "$'\52'" . "$'\52'" FROM '$db_user'@'$db_host_from';"
+					else
+						SQL="REVOKE ALL PRIVILEGES ON \`$db_name\` . "$'\52'" FROM '$db_user'@'$db_host_from';"
+						SQL+="REVOKE GRANT OPTION ON \`$db_name\` . "$'\52'" FROM '$db_user'@'$db_host_from';"
+					fi
+				;;
+
+				normal)
+					if [ -z "$db_name" ]; then
+						SQL="GRANT SELECT,INSERT,UPDATE,DELETE ON "$'\52'" . "$'\52'" TO '$db_user'@'$db_host_from';"
+					else
+						SQL="GRANT SELECT,INSERT,UPDATE,DELETE ON \`$db_name\` . "$'\52'" TO '$db_user'@'$db_host_from';"
+					fi
+				;;
+
+				all)
+					if [ -z "$db_name" ]; then
+						SQL="GRANT ALL PRIVILEGES ON "$'\52'" . "$'\52'" TO '$db_user'@'$db_host_from' WITH GRANT OPTION;"
+					else
+						SQL="GRANT ALL PRIVILEGES ON \`$db_name\` . "$'\52'" TO '$db_user'@'$db_host_from' WITH GRANT OPTION;"
+					fi
+				;;
+			esac
+
+			SQL+="FLUSH PRIVILEGES;"
+			echoc -c0 "$SQL"
+
+			if [ -n "$db_host_to" ]; then
+				the_host="-h $db_host_to"
+			fi
+
+			mysql_query mysql $the_host
+		fi
+	fi
+
+	return 0
+}
+
+
+function mysql_db_exists
+{
+	local SQL db_name
+
+	tb_getopt db_name - $@
+
+	SQL="SHOW DATABASES;"
+
+	if [ -n "$db_host_to" ]; then
+		the_host="-h $db_host_to"
+	fi
+
+	mysql_query mysql $the_host | grep ^$db_name$
+
+	return 0
+}
+
+function mysql_db_create
+{
+
+	tb_getopt db_name - $@
+
+	if [ -z "$(mysql_db_exists $db_name)" ]; then
+		SQL="CREATE DATABASE \`$db_name\` DEFAULT CHARACTER SET utf8 COLLATE utf8_unicode_ci;"
+		echoc -c0 "$SQL"
+
+		if [ -n "$db_host_to" ]; then
+			the_host="-h $db_host_to"
+		fi
+
+		mysql_query mysql $the_host
+
+	fi
+
+	return 0
+}
+
+
+function mysql_db_remove
+{
+	tb_getopt db_name - $@
+
+	[[ "$db_name" = "mysql" || "$db_name" = "information_schema" ]] && stop_err "$db_name can't be removed !"
+
+	if [ -n "$(mysql_db_exists $db_name)" ]; then
+		[ "$force" = on ] || ask_N_stop "are you sure you want remove mysql db '$db_name'"
+
+		SQL="DROP DATABASE \`$db_name\`;"
+		echoc -c0 "$SQL"
+
+		if [ -n "$db_host_to" ]; then
+			the_host="-h $db_host_to"
+		fi
+
+		mysql_query mysql $the_host
+	fi
+
+	return 0
+}
+
+return 0

@@ -1,0 +1,32 @@
+#!/bin/bash
+#C# admin user simple
+#C# $(grep ^human: /etc/group | awk -F':' '{print $4}' | sed -e 's%,% %g')
+#C_LOOP# All $(cd $TB_DIR_MODULES && find -mindepth 1 -maxdepth 1 -type d | sed 's%\./%%g')
+
+tb_getopt group user module - $@
+
+shift
+shift
+
+
+if [ $module = All ]; then
+	for module in $(tb module list)
+	do
+		[ $group = admin ] && system_user_group_list_del $user tb_${module}_admin
+
+		[[ $group = admin || $group = user ]] && system_user_group_list_del $user tb_${module}_user
+
+		system_user_group_list_del $user tb_${module}
+	done
+else
+	for module in $@
+	do
+		[ $group = admin ] && system_user_group_list_del $user tb_${module}_admin
+
+		[[ $group = admin || $group = user ]] && system_user_group_list_del $user tb_${module}_user
+
+		system_user_group_list_del $user tb_${module}
+	done
+fi
+
+return 0

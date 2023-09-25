@@ -1,0 +1,35 @@
+#!/bin/bash
+
+charset utf8;
+
+# limit_req   zone=limit_req0  burst=16;
+# limit_conn  limit_zone0  5;
+
+
+# autoindex on;
+autoindex_exact_size on;
+index index.html index.php;
+
+if ($http_user_agent ~* bot)
+{
+	return 404;
+}
+
+if ($request_method !~ ^(GET|POST|HEAD|OPTIONS|DELETE))
+{
+	return 444;
+}
+
+if ($server_protocol !~ ^HTTP/1)
+{
+	return 444;
+}
+
+location = /favicon.ico
+{
+	if (!-f $document_root/favicon.ico)
+	{
+		return 204;
+	}
+}
+

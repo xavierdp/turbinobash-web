@@ -1,0 +1,46 @@
+#!/bin/bash
+
+#C# $(app_list)
+#C--# --force
+
+tb_getopt app - $@
+
+d_app=$d_apps/$app
+
+[ "$force" = "on" ] || ask_N_stop "are you sure you want remove '$app'"
+
+tb mysql sudo/grant revoke $app --force
+tb mysql sudo/user/remove $app --force
+tb mysql sudo/db/remove	$app --force
+
+f_nginx=/etc/nginx/sites-enabled/10-$app.conf
+
+
+rm -rf $f_nginx
+
+
+
+for php in 7.3 7.4 8.0 8.1
+do
+
+	if [ -e  /etc/systemd/system/multi-user.target.wants/php${php}-fpm.service ];
+	then
+		rm -f /etc/php/${php}/fpm/pool.d/10-${app}.conf
+		
+		service php${php}-fpm restart || true
+	fi
+done
+
+
+
+
+service nginx reload || true
+
+if getent passwd $app &> /dev/null
+then
+	userdel $app -r
+fi
+
+rm -rf $d_app
+
+

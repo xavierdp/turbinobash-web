@@ -1,0 +1,51 @@
+#!/bin/bash
+#C# 7.3 7.4 8.0 8.1
+
+tb_getopt php - $@
+
+apt install ca-certificates apt-transport-https gnupg2 libmemcached11 -y
+
+if lsb_release -i | grep Debian; then
+	wget -q https://packages.sury.org/php/apt.gpg -O- | apt-key add -
+	echo "deb https://packages.sury.org/php/ bullseye main" | tee /etc/apt/sources.list.d/php.list
+	install="phpX phpX-bz2 phpX-cli phpX-common phpX-apcu phpX-bcmath phpX-curl phpX-fpm phpX-intl phpX-json phpX-mbstring phpX-mysql phpX-opcache phpX-readline phpX-xml phpX-zip phpX-memcache phpX-mongodb phpX-redis phpX-ssh2 phpX-tidy phpX-uploadprogress phpX-yaml phpX-xml phpX-intl phpX-gd phpX-imagick"
+else
+	LC_ALL=C.UTF-8 add-apt-repository -y ppa:ondrej/php
+
+	install="phpX phpX-bz2 phpX-cli phpX-common phpX-apcu phpX-bcmath phpX-curl phpX-fpm phpX-intl phpX-json phpX-mbstring phpX-mysql phpX-opcache phpX-readline phpX-xml phpX-zip phpX-memcache phpX-mongodb phpX-redis phpX-ssh2 phpX-tidy phpX-uploadprogress phpX-yaml phpX-xml phpX-pgsql phpX-intl phpX-gd phpX-imagick"
+fi
+
+apt update
+
+
+
+if [ $php = "8.0" ];then
+	install=${install//phpX-json/}
+fi
+
+if [ $php = "8.1" ];then
+	install=${install//phpX-json/}
+fi
+
+echo ${install//X/$php}
+
+apt install ${install//X/$php} -y
+
+${install//X/$php}
+
+. $TB_MODULE_DIR/templates/fpm/www.conf
+
+mkdir -p /etc/php/${version}/fpm/pool.d
+mkdir -p /etc/php/${version}/fpm/conf.d
+
+f_fpm=/etc/php/${version}/fpm/pool.d/www.conf
+	echo "$conf_fpm" > $f_fpm
+	
+	service php${version}-fpm restart
+cat $f_fpm   
+   
+   
+cp $TB_MODULE_DIR/templates/php.ini /etc/php/${version}/cli
+cp $TB_MODULE_DIR/templates/php.ini /etc/php/${version}/fpm
+
+return 0

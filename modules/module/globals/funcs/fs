@@ -1,0 +1,26 @@
+#!/bin/bash
+
+function mounted
+{
+	mount | grep ^/ |  cut -d' ' -f3
+
+	return 0
+}
+
+function is_mounted
+{
+	[[ -z "$(mount | cut -d' ' -f1 | grep "$1$")" ]] && echo "no" || echo "yes"
+
+	return 0
+}
+
+function format_reiserfs
+{
+	tb_getopt part - $@
+
+	echoc -g1 "| formating $part"
+	mkreiserfs $part -q -f 3>&1 1>&- 2>&3 | sed '1,2d' 1>&2
+
+	return 0
+}
+

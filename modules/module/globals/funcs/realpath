@@ -1,0 +1,22 @@
+#!/bin/bash
+
+if [ ! -e /usr/bin/realpath ]; then
+	function realpath
+	{
+		local path="$1" save="$(pwd)" file
+
+		[ -L "$path" ] && path=$(readlink "$path")
+
+		[ -f "$path" ] && file=$(basename $path) && path=$(dirname $path)
+
+		[ -d "$path" ] && cd "$path" && path="$(pwd)" && cd "$save"
+
+		[ -n "$file" ] && path+=/$file
+
+		[ -e "$path" ] && echo "$path"
+
+		return 0
+	}
+fi
+
+return 0

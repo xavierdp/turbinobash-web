@@ -1,0 +1,27 @@
+#!/bin/bash
+
+tb_getopt app - $@
+
+template=joomla
+
+. $TB_MODULE_DIR/confs/base
+
+[ ! -e $d_stock ] && tb template sudo/$template/download
+
+rm -rf $d_app/app
+
+mkdir -p $d_app/app
+
+cp -r -v $d_stock $d_app/app/webroot
+
+tb app sudo/bulldozer $app
+
+
+d_config=$TB_MODULE_DIR/templates/joomla
+
+
+
+cp -v $d_config/configuration.php $d_app/app/webroot
+
+cat $d_config/joom.sql | mysql $app
+

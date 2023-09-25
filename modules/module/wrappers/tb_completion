@@ -1,0 +1,118 @@
+#!/bin/bash
+
+TB_RAN=completion
+TB_WRAPPER=$1
+shift
+TB_PARAMS=$@
+
+readonly TB_DIR
+readonly TB_RAN
+readonly TB_WRAPPER
+readonly TB_PARAMS
+
+readonly CINDEX
+readonly CWORD
+
+. $TB_DIR/modules/module/globals/confs/$TB_RAN
+. $TB_DIR/modules/module/globals/funcs/$TB_RAN
+
+i=0
+j=0
+A_PARAMS=
+
+for e in $@
+do
+	if [[ $e =~ ^- ]]; then
+		((i=i+1))
+	else
+		A_PARAMS[$j]=$e
+
+		((j=j+1))
+	fi
+done
+
+A_OPTIONS=($(extract_long_options $TB_PARAMS))
+readonly A_PARAMS A_OPTIONS
+
+eval_long_options ${A_OPTIONS[@]}
+
+cindex=$((CINDEX - i))
+
+if [ "$cindex" = 0 ]; then
+ 	tb_complete_options 
+	#  --profil= --domain= --hostname=
+
+	tb_run_place
+
+ 	compgenw "$(tb_complete_modules)"
+
+	exit 0
+fi
+
+TB_MODULE_NAME=${A_PARAMS[0]}
+TB_MODULE_DIR=$TB_DIR_MODULES/$TB_MODULE_NAME
+readonly TB_MODULE_NAME
+readonly TB_MODULE_DIR
+
+tb_run_place
+tb_to_include
+
+TB_RUN_PATH=${A_PARAMS[1]}
+readonly TB_RUN_PATH
+tb_run_path
+
+if [ $cindex = 1 ]; then
+	if [ -n "$TB_RUN_FILE" ]; then
+		tb_complete_options  $(compgen -W "$(grep "^#C\-\-#" $TB_RUN_FILE | sed -e 's%^#C\-\-#%%g')")
+		# --profil= --domain= --hostname=
+	else
+		tb_complete_options 
+		# --profil= --domain= --hostname=
+	fi
+
+	compgenw "$(tb_complete_scripts)"
+
+	exit 0
+fi
+
+
+nb_rows=0
+function infinite_jump
+{
+	if [ -z "$completion_list" ]
+	then
+		TB_RUN_FILE_JUMP=$(eval "echo $(grep '^#C_JUMP#' $TB_RUN_FILE | sed -e 's%^#C_JUMP#%%g')")
+
+		if [[ -n "$TB_RUN_FILE_JUMP" && -f $TB_RUN_FILE_JUMP ]]
+		then
+			nb_rows=$(($(grep "^#C#" $TB_RUN_FILE | wc -l)+$nb_rows))
+			completion_list=$(grep "^#C#" $TB_RUN_FILE_JUMP | sed -e "$(($CINDEX-$completion_delta-$nb_rows))!d" -e 's%^#C#%%g')
+
+			TB_RUN_FILE=$TB_RUN_FILE_JUMP
+
+			infinite_jump
+		fi
+	fi
+
+	return 0
+}
+
+completion_delta=1
+if [ -f "$TB_RUN_FILE" ]
+then
+	if [[ $CWORD =~ ^- ]]; then
+	 	tb_complete_options $(compgen -W "$(grep "^#C\-\-#" $TB_RUN_FILE | sed -e 's%^#C\-\-#%%g')")
+	else
+		completion_list=$(grep "^#C#" $TB_RUN_FILE | sed -e "$(($cindex-$completion_delta))!d" -e 's%^#C#%%g')
+
+		infinite_jump
+
+		if [ -n "$completion_list" ]; then
+			compgenw "$completion_list"
+
+			exit 0
+		fi
+	fi
+fi
+
+exit 0

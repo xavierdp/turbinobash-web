@@ -1,0 +1,9 @@
+#!/bin/bash
+
+cd /var/lib/turbinobash
+
+
+for i in $(grep  -l  'TB_[A-Z_]\+' . -R)
+do
+	cat $i | sed -e '/$TB_[A-Z_].\+/!d' -e 's% %\n%g' | sed -e '/$TB_[A-Z_].\+/!d' | sed -e 's%[^A-Z_]% %g' | sed -e 's% %\n%g' | sed -e /^$/d | sed -e '/^_$/d'
+done | sort -u

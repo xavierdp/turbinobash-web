@@ -1,0 +1,10 @@
+#!/bin/bash
+#C# $(cd $TB_MODULE_DIR/templates/models && find -maxdepth 1 -mindepth 1 -type f | sed 's%./%%')
+
+tb_getopt model file - $@
+
+[ -f $file ] && stop_err "the script '$file' already exists"
+
+cp $TB_MODULE_DIR/templates/models/$model $file
+
+return 0

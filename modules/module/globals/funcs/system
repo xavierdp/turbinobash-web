@@ -1,0 +1,231 @@
+ #!/bin/bash
+
+function system_got_acl
+{
+	local mounted_on
+
+	mounted_on=$(df -h -P $TB_DIR | sed 1d | awk '{print $NF}')
+
+	if column -t /etc/fstab | grep " $mounted_on " | awk '{print $4}' | grep acl > /dev/null; then
+		TB_GOT_ACL=yes
+	else
+		TB_GOT_ACL=no
+	fi
+
+	[ "$1" = echo ] && echo $TB_GOT_ACL
+
+	return 0
+}
+
+
+function system_user_home_dir
+{
+	tb_getopt user=${1-`id -u -n`} - $@
+
+ 	grep ^$user: /etc/passwd | awk -F[:] '{print $6}'
+
+	return 0
+}
+
+function system_group_exists
+{
+	tb_getopt group - $@
+
+	grep ^$group: /etc/group
+
+	return 0
+}
+
+function system_user_exists
+{
+	tb_getopt user - $@
+
+	grep ^$user: /etc/passwd
+
+	return 0
+}
+
+function system_uid_gid_min_max
+{
+	local min max type
+
+	tb_getopt type - $@
+
+
+	case "$type" in
+		sytem)
+			min=0
+			max=999
+		;;
+
+		tb)
+			min=600
+			max=700
+		;;
+
+		human)
+			min=1000
+			max=1999
+		;;
+
+		base)
+			min=2000
+			max=2999
+		;;
+
+		site)
+			min=10000
+			max=29999
+		;;
+	esac
+
+	GID_MIN=$min
+	GID_MAX=$max
+
+	UID_MIN=$min
+	UID_MAX=$max
+
+	return 0
+}
+
+
+
+function system_group_add
+{
+	local type group
+	tb_getopt type group - $@
+
+	[ -n "$(system_group_exists $group)" ] && return 0
+
+	system_uid_gid_min_max $type
+
+	groupadd --key GID_MIN=$GID_MIN --key GID_MAX=$GID_MAX $group
+
+	return 0
+}
+
+
+function system_group_add_from_max
+{
+	local group
+	tb_getopt group - $@
+
+	[ -n "$(system_group_exists $group)" ] && return 0
+
+	gid=$(($(awk -F':' '{print $3}'  /etc/group | sed /65534/d | sort -u -n | tail -n 1)+1))
+
+ 	groupadd -g $gid $group
+
+	return 0
+}
+
+function system_group_add_from_value
+{
+	tb_getopt group gid - $@
+
+	[ -n "$(system_group_exists $group)" ] && return 0
+
+ 	groupadd -g $gid $group
+
+	return 0
+}
+
+function system_user_add_from_max
+{
+	local groups d_home
+	tb_getopt user d_home - $@
+
+	if [ -z "$(system_user_exists $user)" ]; then
+		gid=$(($(awk -F':' '{print $3}'  /etc/group | sed /65534/d | sort -u -n | tail -n 1)+1))
+
+		useradd $user \
+			-s /bin/bash \
+			-d $d_home \
+			-u $gid
+	fi
+
+	system_user_group_list_add $user $groups
+
+	return 0
+}
+
+function system_user_add_from_value
+{
+	local groups d_home uid
+	tb_getopt user d_home uid - $@
+
+	gid=$uid
+
+	if [ -z "$(system_user_exists $user)" ]; then
+		useradd $user \
+			-s /bin/bash \
+			-d $d_home \
+			-u $uid
+	fi
+
+	system_user_group_list_add $user $groups
+
+	return 0
+}
+
+function system_user_add
+{
+	local groups d_home
+	tb_getopt type user d_home - $@
+
+	if [ -z "$(system_user_exists $user)" ]; then
+
+		system_uid_gid_min_max $type
+
+		useradd $user \
+			-s /bin/bash \
+			-d $d_home \
+			-K UID_MIN=$UID_MIN \
+			-K UID_MAX=$UID_MAX \
+			-K GID_MIN=$GID_MIN \
+			-K GID_MAX=$GID_MAX
+	fi
+
+	system_user_group_list_add $user $groups
+
+	return 0
+}
+
+function system_user_group_list_add
+{
+	local user
+
+	user=$1; shift
+
+	if [[ -n "$@" ]]; then
+		for i in ${@//,/ }
+		do
+ 			if [ -z "$(groups $user | sed -e 's% %\n%g' | sed -e "/^$user$/d" | grep "^$i$")" ]; then
+ 				[ -n "$(system_group_exists $i)" ] && addgroup $user $i || echoc -y1 "unexistant group '$i'"
+ 			fi
+		done
+	fi
+
+	return 0
+}
+
+
+function system_user_group_list_del
+{
+	local user
+
+	user=$1; shift
+
+	if [[ -n "$@" ]]; then
+		for i in ${@//,/ }
+		do
+ 			if [ -n "$(groups $user | sed -e 's% %\n%g' | sed -e "/^$user$/d" | grep "^$i$")" ]; then
+ 				[ -n "$(system_group_exists $i)" ] && delgroup $user $i || echoc -c1 "unexistant group '$i'"
+ 			fi
+		done
+	fi
+
+	return 0
+}
+
+return 0

@@ -1,0 +1,5 @@
+#kate: syntax bash;
+
+mysql_root_passwd $@
+
+return 0

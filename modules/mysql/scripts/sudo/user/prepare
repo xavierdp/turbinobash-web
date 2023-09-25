@@ -1,0 +1,9 @@
+#kate: syntax bash;
+
+SQL="DELETE FROM user WHERE host!='localhost' OR user='';"
+# "delete from user where password=''"
+mysql_query mysql
+
+
+
+return 0

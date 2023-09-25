@@ -1,0 +1,6 @@
+#!/bin/bash
+
+. $TB_DIR_CURRENT/funcs/common
+
+
+return 0

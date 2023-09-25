@@ -1,0 +1,10 @@
+#kate: syntax bash;
+
+#C# $(mysql_db_list)
+#C# $(mysql_table_list ${A_PARAMS[CINDEX-1]})
+#C--# --prefix=_test_
+tb_getopt db_name table= - $@
+
+mysqldump  -u$(id -u -n)  -p$(cat ~/etc/mysql/localhost/passwd) --no-data $db_name $table | sed -e '/^\/\*!/d' -e '/^--/d' -e 's%EXISTS `%EXISTS `'$prefix'%g' -e 's%TABLE `%TABLE `'$prefix'%g'
+
+return 0

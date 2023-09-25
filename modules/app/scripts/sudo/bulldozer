@@ -1,0 +1,37 @@
+#!/bin/bash
+
+#C# ALL $(app_list)
+
+tb_getopt app - $@
+
+if [ $app = "ALL" ]; then
+
+	for i in $(app_list)
+	do
+		echo "==== $i ====="
+
+		tb app sudo/bulldozer $i
+	done
+else
+
+	d_app=$d_apps/$app
+
+	cd $d_app
+
+	if getent passwd $app &> /dev/null
+	then
+
+		chown $app:www-data $d_app * -R
+	fi
+
+	find $d_app -type f -exec chmod 664 {} \;
+	find $d_app -type d -exec chmod 2775 {} \;
+
+	chmod 600 $d_app/etc/ssh/passwd
+	chown root: $d_app/etc/ssh/passwd
+	chmod 700 $d_app/etc/ssh/
+	chmod 600 $d_app/etc/ssh/*
+
+fi
+
+return 0

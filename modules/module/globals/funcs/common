@@ -1,0 +1,839 @@
+#!/bin/bash
+
+function kernel_modules_list
+{
+	ls -R /lib/modules/$(uname -r) | sed -ne 's/^\('$1'.*\)\.k\?o\(\|.gz\)$/\1/p'
+
+	return 0
+}
+
+function extract_params
+{
+	while [ -n "$1" ]
+	do
+		[[ $1 =~ ^-- ]] || echo $1
+
+		shift
+	done
+
+	return 0
+}
+
+function eval_params
+{
+	local
+
+	n=0
+	while [[ -n "$1" && "$1" != "-" ]]
+	do
+		a_val[$n]=$1
+
+		((n=n+1));shift
+	done
+
+	shift
+
+	m=0
+	while [[ -n "$1" && $m -lt $n && $1 =~ ^[^-][^-]* ]]
+	do
+		param=${a_val[$m]}
+ 		eval ${param//=*/}=$1
+
+		((m=m+1));shift
+	done
+
+	while [ $m -lt $n ]; do
+		if [[ ${a_val[$m]} =~ (.*)=(.*) ]]; then
+			eval ${BASH_REMATCH[1]}=${BASH_REMATCH[2]}
+		else
+			stop_err "param '${a_val[$m]}' is missing"
+		fi
+
+		((m=m+1))
+	done
+}
+
+
+function eval_long_options
+{
+	local tmp var value
+
+	while [ -n "$1" ]
+	do
+		case $1 in
+			--)
+				:
+			;;
+
+			--*=*)
+				tmp=${1##--}
+				var=${tmp//=*}
+				var=${var//-/_}
+				value=${tmp//*=}
+				[ -n "$var" ] && eval $(str_to_lower $var)=$value 2> /dev/null
+			;;
+
+			--*)
+				var=${1##--}
+				var=${var//-/_}
+				[ -n "$var" ] && eval $(str_to_lower $var)=on 2> /dev/null
+			;;
+		esac
+
+		shift
+	done
+
+	return 0
+}
+
+function eval_params_options
+{
+	eval_params $@
+	eval_long_options $@
+
+	return 0
+}
+
+function extract_long_options
+{
+	local long_options
+
+	while [ -n "$1" ]
+	do
+		case $1 in
+			--*=*)
+				long_options+="$1 "
+			;;
+
+			--*)
+				long_options+="$1 "
+			;;
+		esac
+
+		shift
+	done
+
+	echo $long_options
+
+	return 0
+}
+
+function domain_shrink_loop
+{
+	local h
+
+	if [ -n "$1" ]; then
+		h=$1
+	elif [ -n "$hostname" ]; then
+		h=$hostname
+	elif [ -n "$domain" ]; then
+		h=$domain
+	fi
+
+	while [ $(echo "$h" | sed 's%[^.]%%g') ]
+	do
+		echo +$h
+		h=${h#*.}
+	done
+	echo +
+
+	return 0
+}
+
+function domain_shrink_loop_reverse
+{
+	local h
+
+	if [ -n "$1" ]; then
+		h=$1
+	elif [ -n "$hostname" ]; then
+		h=$hostname
+	elif [ -n "$domain" ]; then
+		h=$domain
+	fi
+
+	domain_shrink_loop $h | tac
+
+	return 0
+}
+		# 		TB_THING_MAJ=$(echo $TB_THING | tr "[:lower:]" "[:upper:]")
+		#
+		# 		eval "TB_${TB_THING_MAJ}=${A_PARAMS[2]}"
+		# 		eval "TB_${TB_THING_MAJ}_NAME=$TB_WHAT_NAME"
+		# 		eval "TB_${TB_THING_MAJ}_TYPE=$TB_WHAT_TYPE"
+
+
+
+function tb_run_place
+{
+	local nb_params real_hostname
+
+	real_hostname=$(hostname)
+
+	nb_params=${#A_PARAMS[@]}
+
+	[ "$hostname" = on ] && hostname=
+	[ "$domain" = on ] && domain=
+
+
+	if [ -n "${A_PARAMS[1]}" ]; then
+		TB_THING_MODULE=$(echo ${A_PARAMS[1]} | sed -e 's%^sudo/\|^user/%%g' -e 's%/.*%%g')
+		TB_DIR_THINGS=$TB_DIR/${TB_THING_MODULE}s
+
+		if [ ! -d "$TB_DIR_THINGS" ]; then
+			TB_THING_MODULE=$TB_MODULE_NAME
+			TB_DIR_THINGS=$TB_DIR/${TB_MODULE_NAME}s
+		fi
+
+		if [ ! -d "$TB_DIR_THINGS" ]; then
+			TB_THING_MODULE=
+			TB_DIR_THINGS=
+		else
+			if [ -n "${A_PARAMS[2]}" ]; then
+				TB_THING_DIR=$TB_DIR_THINGS/${A_PARAMS[2]}
+
+				if [ ! -d $TB_DIR_THINGS ]; then
+					TB_THING_DIR=
+				else
+					TB_THING=${A_PARAMS[2]}
+					TB_THING_NAME=${TB_THING#*-}
+					TB_THING_TYPE=${TB_THING%%-*}
+				fi
+			fi
+		fi
+	fi
+
+	if [ -z "$hostname" ]; then
+		[ -z "$domain" ] && domain=${real_hostname}
+	else
+		domain=${hostname#*.}
+	fi
+
+	if [[ -n "$profil" && -d "$TB_DIR_PROFILS/$profil" ]]; then
+		TB_PROFIL=$profil
+		TB_PROFIL_NAME=${TB_PROFIL#*-}
+		TB_PROFIL_TYPE=${TB_PROFIL%%-*}
+		TB_PROFIL_DIR=$TB_DIR_PROFILS/$profil
+	fi
+
+	if [ -z "$sub_domain" ]; then
+		if [[ "$TB_THING_MODULE" = model || "$TB_THING_MODULE" = model ]]; then
+			sub_domain=$TB_THING_NAME
+		fi
+
+		if [ -n "$profil" ]; then
+			sub_domain=$TB_PROFIL_NAME
+		fi
+	fi
+
+	if [[ -n "$sub_domain" && -n "$domain" &&  -z "$hostname"  ]]; then
+		hostname=$sub_domain.$domain
+	fi
+
+	##echo $TB_THING_DIR >> /tmp/mm
+
+	return 0
+}
+
+function tb_run_path
+{
+	TB_RUN_FILE=
+	for dom in $(domain_shrink_loop)
+	do
+		[ $dom = + ] && dom=
+
+		TB_RUN_FILE=$TB_MODULE_DIR$dom/scripts/$TB_RUN_PATH
+
+ 		[ -f $TB_RUN_FILE ] && break
+ 		TB_RUN_FILE=
+	done
+
+	return 0
+}
+
+function tb_module_get
+{
+	local path file
+
+	eval_params path - $@
+
+	for dom in $(domain_shrink_loop)
+	do
+		[ $dom = + ] && dom=
+
+		file=$TB_MODULE_DIR$dom$path
+
+ 		if [ -f $file ]; then
+			break
+		fi
+
+ 		file=
+	done
+
+	echo $file
+
+	return 0
+}
+
+function tb_to_include_light
+{
+	local i dom _p _path
+
+	for i in $@
+	do
+		[[ $i =~ ^(full|simple)=(.*)$ ]]
+
+		_path=${BASH_REMATCH[2]}
+
+		if [ ${BASH_REMATCH[1]} = full ]; then
+			for dom in $(domain_shrink_loop)
+			do
+				[ $dom = + ] && dom=
+
+				TB_DIR_CURRENT=${_path//+DOM+/$dom}
+				_p=$TB_DIR_CURRENT/confs/$TB_RAN
+
+				if [ -f $_p ]; then
+					source $_p
+					break
+				fi
+			done
+
+			for dom in $(domain_shrink_loop)
+			do
+				[ $dom = + ] && dom=
+
+				TB_DIR_CURRENT=${_path//+DOM+/$dom}
+				_p=$TB_DIR_CURRENT/funcs/$TB_RAN
+
+				if [ -f $_p ]; then
+					source $_p
+					break
+				fi
+			done
+		else
+			TB_DIR_CURRENT=$_path
+
+			_p=$TB_DIR_CURRENT/confs/$TB_RAN
+			if [ -f $_p ]; then
+				source $_p
+			fi
+
+			_p=$TB_DIR_CURRENT/funcs/$TB_RAN
+			if [ -f $_p ]; then
+				source $_p
+			fi
+		fi
+	done
+
+	return 0
+}
+
+function tb_to_include_heavy
+{
+	local i dom _p _path
+
+	for i in $@
+	do
+		[[ $i =~ ^(full|simple)=(.*)$ ]]
+
+		_path=${BASH_REMATCH[2]}
+
+		if [ ${BASH_REMATCH[1]} = full ]; then
+			for dom in $(domain_shrink_loop)
+			do
+				[ $dom = + ] && dom=
+
+				TB_DIR_CURRENT=${_path//+DOM+/$dom}
+				_p=$TB_DIR_CURRENT/confs/$TB_RAN
+
+				[ "$TB_DEBUG_INCLUDES" = should ] && echo $_p >> $TB_DEBUG_FILE
+
+				if [ -f $_p ]; then
+					[ "$TB_DEBUG_INCLUDES" = active ] && echo $_p >> $TB_DEBUG_FILE
+					source $_p
+					break
+				fi
+			done
+
+			for dom in $(domain_shrink_loop)
+			do
+				[ $dom = + ] && dom=
+
+				TB_DIR_CURRENT=${_path//+DOM+/$dom}
+				_p=$TB_DIR_CURRENT/funcs/$TB_RAN
+
+				[ "$TB_DEBUG_INCLUDES" = should ] && echo $_p >> $TB_DEBUG_FILE
+
+				if [ -f $_p ]; then
+					[ "$TB_DEBUG_INCLUDES" = active ] && echo $_p >> $TB_DEBUG_FILE
+					source $_p
+					break
+				fi
+			done
+		else
+			TB_DIR_CURRENT=$_path
+
+			_p=$TB_DIR_CURRENT/confs/$TB_RAN
+			[ "$TB_DEBUG_INCLUDES" = should ] && echo $_p >> $TB_DEBUG_FILE
+
+			if [ -f $_p ]; then
+				[ "$TB_DEBUG_INCLUDES" = active ] && echo $_p >> $TB_DEBUG_FILE
+
+				source $_p
+			fi
+
+			_p=$TB_DIR_CURRENT/funcs/$TB_RAN
+			[ "$TB_DEBUG_INCLUDES" = should ] && echo $_p >> $TB_DEBUG_FILE
+
+			if [ -f $_p ]; then
+				[ "$TB_DEBUG_INCLUDES" = active ] && echo $_p >> $TB_DEBUG_FILE
+
+				source $_p
+			fi
+		fi
+	done
+
+	return 0
+}
+
+function tb_to_include
+{
+	local domain_shrink_loop_reverse
+
+	domain_shrink_loop_reverse=$(domain_shrink_loop_reverse)
+
+	[ -n "$TB_DEBUG_INCLUDES" ] && \
+	echo "$(date) ($hostname) | $TB_PARAMS $TB_RAN" >> $TB_DEBUG_FILE
+
+	string=
+
+	string+="full=$TB_DIR_PROFILS/domain+DOM+/pre "
+	[ $HOSTNAME != "$hostname" ] && string+="simple=$TB_DIR_PROFILS/hostname-$HOSTNAME/pre "
+ 	[ -n "$hostname" ] && string+="simple=$TB_DIR_PROFILS/hostname-$hostname/pre "
+
+ 	string+="full=$TB_MODULE_DIR+DOM+ "
+
+	if [ -n "$TB_THING_DIR" ]; then
+		string+="full=$TB_DIR_MODULES/$TB_THING_MODULE+DOM+ "
+		string+="full=$TB_THING_DIR+DOM+ "
+		string+="full=$TB_THING_DIR+DOM+/modules/$TB_THING_MODULE "
+	fi
+
+	if [ -n "$TB_PROFIL" ]; then
+		string+="full=$TB_PROFIL_DIR+DOM+ "
+		string+="full=$TB_PROFIL_DIR+DOM+/modules/$TB_MODULE_NAME "
+	fi
+
+	string+="full=$TB_DIR_PROFILS/domain+DOM+/post "
+	[ $HOSTNAME != "$hostname" ] && string+="simple=$TB_DIR_PROFILS/hostname-$HOSTNAME/post "
+	[ -n "$hostname" ] && string+="simple=$TB_DIR_PROFILS/hostname-$hostname/post "
+
+
+	[ -z "$TB_DEBUG_INCLUDES" ] \
+		&& tb_to_include_light $string \
+		|| tb_to_include_heavy $string
+
+	return 0
+}
+
+function thing_list
+{
+	local dir
+	dir=$TB_DIR_THINGS
+
+	[ -n "$1" ] && dir=$TB_DIR/$1
+	[ -d "$dir" ] || return 0
+
+	cd $dir
+
+	find -mindepth 1 -maxdepth 1 -type d  2> /dev/null | sed  -e 's%^\./%%g' -e 's%+.*%%g' | sort -u
+}
+
+function thing_list_domain
+{
+	local dir
+	dir=$TB_DIR_THINGS
+
+	[ -n "$1" ] && dir=$TB_DIR/$1
+	[ -d "$dir" ] || return 0
+
+	cd $dir
+
+	find -mindepth 1 -maxdepth 1 -type d  2> /dev/null | sed  -e 's%^\./%%g'
+}
+
+function thing_list_module
+{
+	local dir
+	dir=$TB_DIR_THINGS
+
+	[ -n "$1" ] && dir=$TB_DIR/$1
+	[ -d "$dir" ] || return 0
+
+	cd $dir
+
+	find -mindepth 3 -maxdepth 3 -type d  2> /dev/null | sed  -e "/modules\/$TB_MODULE_NAME$/!d" -e 's%^\./%%g' -e 's%/.*%%g'  -e 's%+.*%%g'  | sort -u
+
+	return 0
+}
+
+function thing_run_script
+{
+	local _end_path module echo
+
+	eval_long_options $@
+
+	[ -z "${A_PARAMS[3]}" ] && return 0
+
+	if [ "$echo" = on ]; then
+		thing_get /scripts/${A_PARAMS[3]} --module=$module
+	else
+		thing_run /scripts/${A_PARAMS[3]} --module=$module
+	fi
+
+	return 0
+}
+
+
+function thing_run
+{
+	local path module thing
+	eval_params_options path - $@
+
+
+	TB_THING_RUN_FILE=$(thing_get $path --module=$module --thing=$thing)
+
+	[[ -z "$TB_THING_RUN_FILE" || ! -r "$TB_THING_RUN_FILE" ]] && stop_err "Permission denied or Script unexistant '$TB_PARAMS'"
+
+	while [ -n "$1" ]; do shift; done
+
+	source $TB_THING_RUN_FILE $([ "${#A_PARAMS[@]}" -gt 4 ] && echo ${A_PARAMS[@]:4}) ${A_OPTIONS[@]}
+
+	return 0
+}
+
+
+function thing_run_file
+{
+	local file
+	eval_params_options file - $@
+
+	TB_THING_RUN_FILE=$file
+
+	[[ -z "$TB_THING_RUN_FILE" || ! -r "$TB_THING_RUN_FILE" ]] && stop_err "Permission denied or Script unexistant '$TB_PARAMS'"
+
+	while [ -n "$1" ]; do shift; done
+
+	. $TB_THING_RUN_FILE $([ "${#A_PARAMS[@]}" -gt 4 ] && echo	 ${A_PARAMS[@]:4}) ${A_OPTIONS[@]}
+
+	return 0
+}
+
+function thing_get
+{
+	local _end_path type module path _start_path _path thing
+	eval_params_options path - $@
+
+	[ -z "$type" ] && type=file
+
+	if [ "$module" = on ]; then
+		_end_path=/modules/$TB_MODULE_NAME$path
+	elif [ -n "$module" ]; then
+		_end_path=/modules/$module$path
+	else
+		_end_path=$path
+	fi
+
+	if [ -z "$thing" ]; then
+		_start_path=$TB_THING_DIR
+	else
+		_start_path=$TB_DIR/$thing
+	fi
+
+	if [ "$type" = file ]; then
+		_path=$TB_DIR_PROFILS/hostname-$hostname$_end_path
+ 		if [ -f $_path ]; then
+			echo $_path
+
+			return 0
+ 		fi
+
+		[ -n "$TB_PROFIL" ] && for dom in $(domain_shrink_loop)
+		do
+			[ $dom = + ] && dom=
+
+			_path=$TB_PROFIL_DIR$dom$_end_path
+
+			if [ -f $_path ]; then
+				echo $_path
+
+				return 0
+			fi
+		done
+
+		for dom in $(domain_shrink_loop)
+		do
+			[ $dom = + ] && dom=
+
+			_path=$_start_path$dom$_end_path
+
+			if [ -f $_path ]; then
+				echo $_path
+
+				return 0
+			fi
+		done
+	else
+		_path=$TB_DIR_PROFILS/hostname-$hostname$_end_path
+		if [ -d $_path ]; then
+			echo $_path
+
+			return 0
+		fi
+
+		[ -n "$TB_PROFIL" ] && for dom in $(domain_shrink_loop)
+		do
+			[ $dom = + ] && dom=
+
+			_path=$TB_PROFIL_DIR$dom/$_end_path
+
+			if [ -d $_path ]; then
+				echo $_path
+
+				return 0
+			fi
+		done
+
+		for dom in $(domain_shrink_loop)
+		do
+			[ $dom = + ] && dom=
+
+			_path=$_start_path$dom/$_end_path
+
+			if [ -d $_path ]; then
+				echo $_path
+
+				return 0
+			fi
+		done
+	fi
+
+	return 0
+}
+
+
+
+function thing_export_archive
+{
+	local thing path destination file dir
+	eval_params_options thing path destination - $@
+
+ 	file=$(thing_get $path --module=$module --thing=$thing)
+
+	if [ -f "$file" ]; then
+		dir=$(basename $file | sed -e 's%\..*%%g' -e 's%__%/%g')
+		mkdir -pv $destination/$dir
+
+		echo_do tar xjf $file -C $destination/$dir
+	fi
+
+	return 0
+}
+
+
+function check_and_source
+{
+	[ -z "$1" ] && return 0
+
+
+	return 0
+}
+
+
+function thing_export
+{
+	local dom module hn path profil _path f_profil
+
+	eval_params_options thing path destination - $@
+
+	[ -n "$module" ] && module="/modules/$module"
+
+	function install_read
+	{
+		eval_params the_user the_group the_perm - $@
+
+		return 0
+	}
+
+	list=$(
+		for dom in $(domain_shrink_loop_reverse)
+		do
+			[ $dom = + ] && dom=
+
+			_path=$TB_DIR$thing$dom$module$path
+
+ 			if [[ -d $_path ]]; then
+				echo $_path
+ 			fi
+		done
+	)
+
+ 	echoc -y0 "$list"
+
+	hold=$(for _path in $(echo "$list" | tac)
+	do
+		find $_path -mindepth 1 -type f -name ".hold" | sed -e "s%^$_path/%%g" -e "s%/.hold$%%g"
+	done)
+
+
+	for _path in $(echo "$list" | tac)
+	do
+		for dir in $(find $_path -mindepth 1 -type d)
+		do
+			flag=1
+			[ -n "$hold" ] && for h in "$hold"
+			do
+				[[ "$dir" =~ ^$_path/$h* ]] && flag=0
+			done
+
+			if [ $flag = 1 ]; then
+ 				chroot=$(echo $dir | sed  -e "s%$TB_DIR$thing+\?[^/]*/%/%g" -e "s%${module}%%" -e "s%$path%%")
+
+				dst=$(echo $destination$chroot | sed 's%//%/%g')
+
+				[ "$dir" =  "$chroot" ] && stop_err "thing_export $path problem"
+
+ 				mkdir -p $dst
+				the_user=root
+				the_group=root
+				the_perm=755
+
+				file=$dir/.install
+				[ -f $file ] &&	install_read $(sed -e '/^#INSTALL#/!d' -e 's%^#INSTALL# *%%' $file)
+
+ 				chown $the_user		$dst
+ 				chgrp $the_group 	$dst
+ 				chmod -s			$dst
+ 				chmod $the_perm		$dst
+
+ 				echo "D $the_user $the_group $the_perm  <=> $dst"
+			fi
+		done
+	done
+
+# 	echoc -y0 "$hold"
+
+	files=$(for _path in $(echo "$list" | tac)
+	do
+		for f in $(find $_path -mindepth 1 -type f ! -name ".install")
+		do
+			flag=1
+			[ -n "$hold" ] && for h in "$hold"
+			do
+				[[ "$f" =~ ^$_path/$h* ]] && flag=0
+			done
+
+			[ $flag = 1 ] && echo $f
+		done
+	done)
+
+
+	copy_list=$(for _path in $(echo "$list" | tac)
+	do
+ 		for i in $(echo "$files" | grep ^$_path)
+ 		do
+ 			echo $i
+  			files=$(echo "$files" | sed -e "/$(echo $path${i#$_path} | sed -e 's%/%\\/%g')$/d")
+ 		done
+	done)
+
+	installed_files=$(for src in $copy_list
+	do
+		the_user=root
+		the_group=root
+		the_perm=644
+
+		is_text=0
+		[ -n "$(file $src | grep 'text')" ] && is_text=1
+
+		install_file=
+		if [ $is_text = 1 ]
+		then
+			install_file=$src
+		else
+			[ -e $src.install ] && install_file=$src.install
+		fi
+
+		[ -e "$install_file" ] && grep '^#INSTALL#' $install_file > /dev/null && install_read $(sed -e '/^#INSTALL#/!d' -e 's%^#INSTALL# *%%' $install_file)
+
+		chroot=$(echo $src | sed  -e "s%$TB_DIR$thing+\?[^/]*/%/%g" -e "s%${module}%%" -e "s%$path%%")
+
+		dst=$(echo $destination$chroot | sed 's%//%/%g')
+
+		[ "$src" =  "$chroot" ] && stop_err "thing_export $path problem"
+
+# 		echoc -y0 $src
+# 		echoc -y1 $destination $chroot $path
+
+		flag_hold=0
+		[ -e $dst.hold ] && flag_hold=1
+		[ -e $src.hold ] && flag_hold=1
+
+		[[ $is_text = 1 && -e $dst ]] && grep "^#HOLD#" $dst > /dev/null && flag_hold=1
+		grep "^#HOLD#" $src > /dev/null && flag_hold=1
+
+# 		echoc -r0 $flag_hold
+
+		if [ $flag_hold = 0 ]
+		then
+			if grep '__[a-zA-Z_0-9]*__' $src > /dev/null ; then
+				tmp=$(cat $src)
+
+				ITSELF_PATH=$chroot
+				ITSELF_FILE=$(basename $ITSELF_PATH)
+				ITSELF_DIR=$(dirname $ITSELF_PATH)
+
+				for j in $(grep -o "__[a-zA-Z_0-9-]*__" $src | sort -u | sed 's%__%%g')
+				do
+					echo "$src => '__${j}__' to '${!j}'"
+					tmp=$(echo "$tmp" | sed -e "s%__${j}__%${!j}%g")
+				done
+
+				echo "$tmp" > $dst
+				echo >> $dst
+
+			else
+				cp $src $dst
+			fi
+
+			echo "F $the_user $the_group $the_perm <=> $dst"
+
+# 			[ -L $i ] && continue
+
+			chown $the_user	$dst
+			chgrp $the_group $dst
+			chmod $the_perm	$dst
+
+			if [[ -n "$true_wd" && -x "$true_wd/bin/bash" && -e "$dst" && -n "$(grep '^#CHROOT_RUN#' $dst)" ]]; then
+				sed -e '/^#CHROOT_RUN#/!d' -e 's%^#CHROOT_RUN# *%%' $dst > $true_wd/chroot
+				chroot $true_wd /bin/bash /chroot
+				rm $true_wd/chroot
+			fi
+
+		fi
+	done)
+
+	[ -z "$installed_files" ] && return 0
+
+	echo
+	echo "$installed_files" | sed -e "/^F/!d"
+	echo
+	echo "$installed_files" | sed -e "/^F/d"
+	echo
+
+	return 0
+}
+
+
+return 0

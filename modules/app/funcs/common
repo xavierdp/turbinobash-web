@@ -1,0 +1,12 @@
+#!/bin/bash
+
+function app_list
+{
+	cd /apps
+	find -maxdepth 1 -mindepth 1 -type d| sed s%\./%%g| grep -v "lost+found"| grep -v ^\\.
+	
+	return 0
+}
+
+
+return 0

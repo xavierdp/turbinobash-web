@@ -1,0 +1,6 @@
+#kate: syntax bash;
+#C# $(mysql_db_list)
+
+mysql_db_create $@
+
+return 0

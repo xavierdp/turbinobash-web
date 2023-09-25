@@ -1,0 +1,9 @@
+#kate: syntax bash;
+
+#C# $(mysql_db_list)
+tb_getopt db_name - $@
+
+# mysqldump --skip-lock-tables  -u$(id -u -n)  -p$(cat ~/etc/mysql/localhost/passwd) $@
+mysqldump --skip-lock-tables  -u$(id -u -n)  $@
+
+return 0

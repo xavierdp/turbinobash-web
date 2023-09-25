@@ -1,0 +1,8 @@
+#kate: syntax bash;
+#C# $(mysql_user_list)
+#C# normal all revoke
+#C# $(mysql_db_list)
+
+mysql_grant $@
+
+return 0

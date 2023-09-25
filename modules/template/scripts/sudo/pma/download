@@ -1,0 +1,22 @@
+#!/bin/bash
+
+template=pma
+
+. $TB_MODULE_DIR/confs/base
+
+rm -rf $d_tmp $d_stock
+mkdir -p $d_tmp $d_stock
+
+curl --silent -L https://www.phpmyadmin.net/downloads/phpMyAdmin-latest-english.tar.gz > $d_tmp/$template.tar.gz
+
+
+cd $d_tmp 
+echo $d_tmp 
+
+
+tar xzf $d_tmp/$template.tar.gz --one-top-level=$template --strip-components 1
+
+mv -v $d_tmp/$template $d_root
+
+ls -lah $d_stock
+

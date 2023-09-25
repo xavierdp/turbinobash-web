@@ -1,0 +1,8 @@
+#!/bin/bash
+
+for i in common string shell profil file system network
+do
+	. $TB_DIR_FUNCS/$i
+done
+
+return 0

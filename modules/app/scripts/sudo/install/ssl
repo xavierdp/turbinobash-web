@@ -1,0 +1,73 @@
+#!/bin/bash
+#C--# --nginx --apache --hybride
+
+tb_getopt webdomain - $@
+
+d_ssl=/etc/ssl/base
+
+mkdir -p $d_ssl
+
+openssl req  -nodes -new -x509 -days 3650 -keyout $d_ssl/base.key -out  $d_ssl/base.csr -subj "/C=FR/ST=HERAUKT/L=TRUC/O=MYCOMPANY/OU=IT/CN=$webdomain"
+
+rm -f /etc/nginx/sites-enabled/01-base.conf
+rm -f /etc/apache2/sites-enabled/01-base.conf
+
+if [ "$apache" = "on" ]; then
+  echo "<VirtualHost *:80>
+	DocumentRoot /var/www/html
+	<Directory /var/www/html>
+		Require all granted
+	</Directory>
+</VirtualHost>
+
+<VirtualHost *:443>
+	DocumentRoot /var/www/html
+	<Directory /var/www/html>
+		Require all granted
+	</Directory>
+
+	SSLCertificateFile /etc/ssl/base/base.csr
+	SSLCertificateKeyFile /etc/ssl/base/base.key
+</VirtualHost>
+" > /etc/apache2/sites-enabled/01-base.conf
+fi
+
+if [ "$hybride" = "on" ]; then
+  echo "<VirtualHost *:4443>
+	DocumentRoot /var/www/html
+	<Directory /var/www/html>
+		Require all granted
+	</Directory>
+
+	SSLCertificateFile /etc/ssl/base/base.csr
+	SSLCertificateKeyFile /etc/ssl/base/base.key
+</VirtualHost>
+" > /etc/apache2/sites-enabled/01-base.conf
+fi
+
+
+if [[ "$nginx" = "on" || "$hybride" = "on" ]]; then
+  echo "server {
+    server_name _;
+    root /var/www/html;
+    index index.html;
+   
+    listen 80; 
+}
+
+server {
+    server_name _;
+    root /var/www/html;
+    index index.html;
+   
+    listen 443 ssl; 
+    ssl_certificate /etc/ssl/base/base.csr;
+    ssl_certificate_key /etc/ssl/base/base.key;
+}
+
+" > /etc/nginx/sites-enabled/01-base.conf
+fi
+
+
+echo $d_ssl/base.crt
+echo $d_ssl/base.key

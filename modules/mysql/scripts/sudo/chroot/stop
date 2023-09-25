@@ -1,0 +1,4 @@
+# kate: syntax bash;
+
+mysql_chroot_stop
+

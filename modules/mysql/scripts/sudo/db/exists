@@ -1,0 +1,5 @@
+#kate: syntax bash;
+
+mysql_db_exists $@
+
+return 0

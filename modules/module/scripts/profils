@@ -1,0 +1,12 @@
+#!/bin/bash
+#NO_DEBUG#
+#ACL RO# turbinobash
+
+for i in $(find $TB_DIR_MODULES -maxdepth 3 -mindepth 3 -type d -name profil 2> /dev/null)
+do
+  	i=${i#$TB_DIR_MODULES/}
+
+	echo ${i///scripts*}
+done
+
+return 0

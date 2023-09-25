@@ -1,0 +1,29 @@
+#!/bin/bash
+
+#C# $(app_list)
+
+tb_getopt src dst - $@
+
+d_src=$d_apps/$acronym/$src
+d_dst=$d_apps/$acronym/$dst
+
+php=$(cat $d_src/etc/php/version)
+echo "### tb app sudo/remove $dst --force ###"
+
+tb app sudo/remove $dst --force
+echo "### tb app sudo/create $dst $php ###"
+
+tb app sudo/create $dst $php 
+# --apache
+
+echo "### cp -rf $d_src/app $d_dst ###"
+cp -rf $d_src/app $d_dst
+
+echo "### tb app sudo/bulldozer $dst ###"
+tb app sudo/bulldozer $dst
+
+echo "### tb mysql sudo/db/dump  $src | sed "s% $src% $dst%g" | mysql  $dst ###"
+
+tb mysql sudo/db/dump  $src | sed "s%$src%$dst%g" | mysql  $dst
+
+return 0

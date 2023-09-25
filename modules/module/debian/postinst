@@ -1,0 +1,5 @@
+#!/bin/bash
+
+bash /var/lib/turbinobash/modules/module/wrappers/install
+
+exit 0

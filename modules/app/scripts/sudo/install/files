@@ -1,0 +1,5 @@
+#!/bin/bash
+
+cp -rv $TB_MODULE_DIR/files/* /
+
+return 0

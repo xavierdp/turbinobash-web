@@ -1,0 +1,27 @@
+#!/bin/bash
+
+export LANG=C
+export PATH=/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin
+
+TB_DIR_TMP=/tmp/tb
+mkdir -p $TB_DIR_TMP
+cd $TB_DIR_TMP
+
+TB_DIR_SAV=~/.turbinobash/sav
+TB_DIR_TEMPLATES=/var/sav/templates
+
+TB_DIR_MODULES=$TB_DIR/modules
+TB_DIR_MODELS=$TB_DIR/models
+TB_DIR_PROFILS=$TB_DIR/profils
+
+TB_DIR_FUNCS=$TB_DIR_MODULES/module/globals/funcs
+
+TB_DEBUG_LEVEL=4
+TB_DEBUG_INCLUDES=
+# TB_DEBUG_INCLUDES=active
+# TB_DEBUG_INCLUDES=should
+
+TB_DEBUG_FILE=$TB_DIR_TMP/tb_debug
+
+
+return 0

@@ -1,0 +1,32 @@
+#!/bin/bash
+
+#C# All $(app_list)
+#C# $(find /etc/systemd/system  -name "php[0-9].*"| sed "s%-fpm.service%%g"| sed "s%.*php%%g")
+#C--# --apache
+
+
+
+tb_getopt app php - $@
+
+d_app=$d_apps/$app
+
+
+echo $php > $d_app/etc/php/version
+
+. $TB_MODULE_DIR/templates/app.conf
+
+f_old=$(find /etc/php -name "10-${app}.conf")
+f_new=/etc/php/${php}/fpm/pool.d/10-${app}.conf
+
+
+
+php_old=$(echo $f_old | sed "s%/fpm.*%%g" | sed "s%.*php/%%g"|sed "s%\n%%g")
+
+if [[ "$f_new" != "$f_old" ]]
+then
+	mv -v $f_old $f_new
+
+	service php${php_old}-fpm restart
+	service php${php}-fpm restart
+fi
+

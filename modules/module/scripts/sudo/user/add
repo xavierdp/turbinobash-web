@@ -1,0 +1,29 @@
+#!/bin/bash
+#C# admin user simple
+#C# $(grep ^human: /etc/group | awk -F':' '{print $4}' | sed -e 's%,% %g')
+#C_LOOP# All $(cd $TB_DIR_MODULES && find -mindepth 1 -maxdepth 1 -type d | sed 's%\./%%g')
+
+tb_getopt group user module - $@
+
+shift
+shift
+
+
+if [ $module = All ]; then
+	[ $group = admin ] && system_user_group_list_add $user $(awk -F':' '{print $1}' /etc/group | sed  -e '/^tb_.*_sudo/!d')
+
+	[[ $group = admin || $group = user ]] && system_user_group_list_add $user $(awk -F':' '{print $1}' /etc/group | sed  -e '/^tb_.*_user/!d')
+
+	system_user_group_list_add $user $(awk -F':' '{print $1}' /etc/group | sed  -e '/^tb_[a-z0-9]*$/!d')
+else
+	for module in $@
+	do
+		[ $group = admin ] && system_user_group_list_add $user tb_${module}_admin
+
+		[[ $group = admin || $group = user ]] && system_user_group_list_add $user tb_${module}_user
+
+		system_user_group_list_add $user tb_${module}
+	done
+fi
+
+return 0

@@ -1,0 +1,27 @@
+#!/bin/bash
+set -e
+cd /var/lib/turbinobash/
+# cd /var/lib/turbinobash/modules/site
+cd /usr/share/adwords/1.2.1/src/Google/Api/Ads
+
+date=$(date +'%y%m%d-%H%M%S')
+tar cjf /root/tb-mano-$date.tar.bz2 -C /var/lib/turbinobash .
+
+s='(!class_exists'
+s='(false AND !class_exists'
+d='(true OR !class_exists'
+
+# grep  -n --color "$s" . -R
+#
+# exit
+
+for i in $(grep  -l "$s" . -R)
+do
+ 	[[ $i =~ module/templates/sed ]] && continue
+	[[ $i =~ modules/conf/templates ]] && continue
+	echo $i
+# 	grep --color "$s" $i
+ 	sed -i "s%$s%$d%g" $i
+done
+
+

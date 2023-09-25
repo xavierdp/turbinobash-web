@@ -1,0 +1,5 @@
+#kate: syntax bash;
+
+mysql_db_list
+
+return 0

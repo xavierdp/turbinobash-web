@@ -1,0 +1,10 @@
+# kate: syntax bash;
+
+[ -z "$(which mysql)" ] && exit 0
+
+for i in system
+do
+	. $TB_DIR_FUNCS/$i
+done
+
+return 0

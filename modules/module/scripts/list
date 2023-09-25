@@ -1,0 +1,21 @@
+#!/bin/bash
+#NO_DEBUG#
+#C# itself union full
+
+cd $TB_DIR_MODULES
+
+case "$1" in
+	union)
+		find -L . -mindepth 2 -maxdepth 2 -type d -name "union" 2> /dev/null | sed -e "s%./\(.*\)/.*%\1%" -e 's%+.*%%g' -e '/^_/d'  -e '/^\./d' | sort -u
+	;;
+
+	full)
+		find -L . -mindepth 2 -maxdepth 2 -name "scripts" 2> /dev/null | sed -e "s%./\(.*\)/.*%\1%" -e '/^_/d'  -e '/^\./d' | sort -u
+	;;
+
+	*)
+		find -L . -mindepth 2 -maxdepth 2 -name "scripts" 2> /dev/null | sed -e "s%./\(.*\)/.*%\1%" -e 's%+.*%%g' -e '/^_/d'  -e '/^\./d' | sort -u
+	;;
+esac
+
+return 0

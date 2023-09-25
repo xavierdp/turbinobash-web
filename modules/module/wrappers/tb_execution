@@ -1,0 +1,80 @@
+#!/bin/bash
+set -e
+
+TB_RAN=execution
+TB_WRAPPER=$1
+shift
+TB_PARAMS=$@
+
+readonly TB_DIR
+readonly TB_RAN
+readonly TB_WRAPPER
+readonly TB_PARAMS
+
+. $TB_DIR/modules/module/globals/confs/$TB_RAN
+. $TB_DIR/modules/module/globals/funcs/$TB_RAN
+
+A_PARAMS=($(extract_params $TB_PARAMS))
+A_OPTIONS=($(extract_long_options $TB_PARAMS))
+readonly A_PARAMS A_OPTIONS
+
+[ -z "${A_PARAMS[0]}" ] && stop_err "$TB_WRAPPER wants params"
+TB_MODULE_NAME=${A_PARAMS[0]}
+readonly TB_MODULE_NAME
+
+
+TB_MODULE_DIR=$TB_DIR_MODULES/$TB_MODULE_NAME
+[ ! -e "$TB_MODULE_DIR" ] && stop_err "module '$TB_MODULE_NAME' unexistant !"
+readonly TB_MODULE_DIR
+
+
+[ -z "${A_PARAMS[1]}" ] && stop_err "$TB_WRAPPER $TB_MODULE_NAME wants path"
+TB_RUN_PATH=${A_PARAMS[1]}
+readonly TB_RUN_PATH
+
+eval_long_options ${A_OPTIONS[@]}
+tb_run_place
+tb_run_path
+
+[[ -z "$TB_RUN_FILE" || ! -r "$TB_RUN_FILE" ]] && stop_err "Permission denied or Script unexistant '$TB_PARAMS'"
+
+if echo $@ | grep '\-\-help' > /dev/null
+then
+	help=$(grep "^#H#" $TB_RUN_FILE | sed 's%^#H# *%%')
+
+	[ -n "$help" ] && echoc -c1 "$help"
+
+	exit 0
+fi
+
+while [ -n "$1" ]; do shift; done
+
+if test $(id -u) != 0 && echo $TB_RUN_PATH | grep '^sudo/\|/sudo/' > /dev/null
+then
+	sudo $TB_WRAPPER "$TB_PARAMS --from-user=$(id -nu)"
+
+	exit 0
+fi
+
+tb_to_include
+
+
+grep "^#DEBUG#" $TB_RUN_FILE > /dev/null && shell_debug 4 g2 "$TB_WRAPPER $TB_PARAMS <begin>"
+
+eval_long_options ${A_OPTIONS[@]}
+. $TB_RUN_FILE $([ "${#A_PARAMS[@]}" -gt 2 ] && echo ${A_PARAMS[@]:2}) ${A_OPTIONS[@]}
+
+grep "^#DEBUG#" $TB_RUN_FILE > /dev/null && shell_debug 3 g2 "$TB_WRAPPER $TB_PARAMS <end>"
+
+
+# echo $@
+
+#
+# echo "hostname '$hostname'"
+# echo "domain '$domain'"
+# echo "profil $TB_PROFIL"
+# echo "extension '$extension'"
+#
+# domain_shrink_loop
+
+exit 0
