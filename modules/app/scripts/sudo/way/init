@@ -4,7 +4,7 @@
 #C# 7.3 7.4 8.0 8.1
 #H# mode php email webdomain
 
-tb_getopt mode php email webdomain   - $@
+tb_getopt mode email webdomain php=7.4  - $@
 
 mkdir -p /conf 
 mkdir -p /apps

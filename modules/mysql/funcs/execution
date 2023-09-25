@@ -103,7 +103,7 @@ function mysql_root_passwd
 	[ "$force" = on ] || ask_N_stop "are you sure you want change root password (mysld will be restarted)"
 
 
-db_passwd=$(gen_urandom_passwd 10)
+db_passwd=$(gen_urandom_passwd 14)
 
 	echo "[client]
 user=root

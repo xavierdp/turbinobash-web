@@ -17,12 +17,14 @@ f_nginx=/etc/nginx/sites-enabled/10-$app.conf
 
 rm -rf $f_nginx
 
-f_apache2=/etc/apache2/sites-enabled/10-$app.conf
+f_apache2_80=/etc/apache2/sites-enabled/10-$app.conf
+f_apache2_443=/etc/apache2/sites-enabled/10-$app-le-ssl.conf
 
-rm -rf $f_apache2
+rm -rf $f_apache2_80
+rm -rf $f_apache2_443
 
 
-for php in 7.3 7.4 8.0 8.1
+for php in 7.3 7.4 8.0 8.1 8.2
 do
 
 	if [ -e  /etc/systemd/system/multi-user.target.wants/php${php}-fpm.service ];

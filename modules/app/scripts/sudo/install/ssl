@@ -1,5 +1,5 @@
 #!/bin/bash
-#C--# --nginx --apache --hybride
+#C--# --nginx --apache --hybrid --proxy
 
 tb_getopt webdomain - $@
 
@@ -32,7 +32,7 @@ if [ "$apache" = "on" ]; then
 " > /etc/apache2/sites-enabled/01-base.conf
 fi
 
-if [ "$hybride" = "on" ]; then
+if [ "$hybrid" = "on" ]; then
   echo "<VirtualHost *:4443>
 	DocumentRoot /var/www/html
 	<Directory /var/www/html>
@@ -46,7 +46,7 @@ if [ "$hybride" = "on" ]; then
 fi
 
 
-if [[ "$nginx" = "on" || "$hybride" = "on" ]]; then
+if [[ "$nginx" = "on" || "$hybrid" = "on" || "$proxy" = "on" ]]; then
   echo "server {
     server_name _;
     root /var/www/html;
