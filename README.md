@@ -1,7 +1,9 @@
 # turbinobash-web
 
+Normaly comptatible with debian 11 (debian 12 not tested) et ubuntu 22.04
+
 ## turbinobash 
-**turbinobash** is a bash framewok i made to manage bash script and script scompletion
+**turbinobash** is a bash framewok i made to manage bash script and script completion
 
 **turbinobash-web** is a combination of 4 modules
 * module : to manage modules
@@ -16,8 +18,6 @@ There is 4 scrip in scripts directory to isntall 4 way of web use :
 * hybrid : nginx proxying towards apache + php fpm + mariadb
 * proxy : nginx only use for proxying
 
-
-## structure of an app
 
 ```bash
 bash nginx.sh johndoe@domain.tld sub.mydomain.tld
@@ -47,7 +47,7 @@ tb app sudo/create test-v1 --certbot --webdomain sub.myotherdomain.tld --www
 tb app sudo/way/proxy/create test-v1 https://127.0.0.1/ --certbot
 ```
 
-
+# Structure of an app
 
 ## Directory scructure
 Alls apps are in /apps
