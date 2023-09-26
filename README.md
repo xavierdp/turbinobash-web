@@ -186,8 +186,12 @@ Send a email if a partition is more filled tha 85%
 */1 * * * * /bin/tb app sudo/diskalert name@domain.tld
 ```
 
+## [TODO]
+How templates are working
 
-
+```bash
+tb app sudo/create pma-v1 --certbot --template_install=pma
+```
 
 
 
