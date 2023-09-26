@@ -1,0 +1,40 @@
+#/bin/bash
+
+if whereis mailx | grep bin >/dev/null; then
+  :
+else
+  echoc -r2 "mailx is missing"
+  echoc -g2 "tb app sudo/install/mail sub.domain.tld"
+
+  exit
+fi
+
+if whereis postfix | grep bin >/dev/null; then
+  :
+else
+  echoc -r2 "postfix is missing"
+  echoc -g2 "tb app sudo/install/mail sub.domain.tld"
+
+  exit
+fi
+
+tb_getopt email - $@
+
+md5File=${0//\.*/}.md5
+
+# test if all partiion space disk is over 85 %
+DF=$(df -h -P | column -t | grep "8[5-9]%\|9[0-9]%\|100%")
+
+if [[ -n "$DF" ]]; then
+  md5=$(echo "$DF" | md5sum | sed "s% *-%%")
+
+  #       echo "$md5File" "$(cat $md5File)" "$md5"
+  if [[ -e "$md5File" && "$(cat $md5File)" = "$md5" ]]; then
+    #               echo "nothing to do"
+    :
+  else
+    echo -e "DISKALERT $HOSTNAME :\n\n" "$DF\n"
+    echo -e "DISKALERT $HOSTNAME :\n\n" "$DF\n" | mailx -s "Disk Alert $HOSTNAME $(date +%Y%m%d-%H%M%S)" $email
+    echo $md5 >$md5File
+  fi
+fi

@@ -34,4 +34,6 @@ service php7.4-fpm restart
 service php8.1-fpm restart
 service mariadb restart
 
-echo "# tb app sudo/way/proxy/create test-v1 http://127.0.0.1/ --certbot"
+echoc -g2 "# tb app sudo/way/proxy/create test-v1 http://127.0.0.1/ --certbot"
+
+echoc -y2 "# quit shell and comeback to enable tb completion"

@@ -6,40 +6,35 @@
 
 mkdir -p /apps
 
-
 email=$(cat /conf/email)
 
-[ -z "$webdomain" ] && webdomain=$(cat /conf/webdomain) || dom_from_cl=on 
+[ -z "$webdomain" ] && webdomain=$(cat /conf/webdomain) || dom_from_cl=on
 
 [ -e /conf/php ] && php=$(cat /conf/php) || php=7.4
 
 tb_getopt app php=$php - $@
 
-
-
 [ "$remove" == "on" ] && tb app sudo/way/nginx/remove $app --force
-
 
 d_app=$d_apps/$app
 
 # user creation fi don't exists
-if ! getent passwd $app &> /dev/null
-then
+if ! getent passwd $app &>/dev/null; then
 	useradd -m -s/bin/bash ${app} -d $d_app
 fi
 
 # directories creation
 mkdir -pv $d_app/{app/webroot,etc/php,log,sav,tmp}
 
-# remember chosen php version 
-echo $php > $d_app/etc/php/version
+# remember chosen php version
+echo $php >$d_app/etc/php/version
 
 # db user create mariadb db passwd set + db create + grant to user
 if [ -n "$(which mariadb)" ]; then
-	tb mysql sudo/user/create 	$app
-	tb mysql sudo/user/passwd 	$app
-	tb mysql sudo/db/create 	$app
-	tb mysql sudo/grant  $app all $app
+	tb mysql sudo/user/create $app
+	tb mysql sudo/user/passwd $app
+	tb mysql sudo/db/create $app
+	tb mysql sudo/grant $app all $app
 fi
 
 # source app confs
@@ -48,31 +43,28 @@ fi
 # nginx conf path
 f_nginx=/etc/nginx/sites-enabled/10-$app.conf
 # if [ ! -e $f_nginx ];
-# then 
+# then
 
-	# if domain came from --options
-	if [[ "$dom_from_cl" = "on" ]]; then
-		
-		echo "$conf_nginx_dom" > $f_nginx
+# if domain came from --options
+if [[ "$dom_from_cl" = "on" ]]; then
 
-		# add www if option --www
-		[ "$www" = "on" ] && echo "$conf_nginx_dom_www" > $f_nginx
-	else
-			echo "$conf_nginx_app" > $f_nginx
-	fi
+	echo "$conf_nginx_dom" >$f_nginx
 
-	service nginx reload
+	# add www if option --www
+	[ "$www" = "on" ] && echo "$conf_nginx_dom_www" >$f_nginx
+else
+	echo "$conf_nginx_app" >$f_nginx
+fi
+
+service nginx reload
 # fi
 cat $f_nginx
 
-
 # default php index file
 f_index=$d_app/app/webroot/index.php
-if [ ! -e $f_index ];
-then 
-	echo "$conf_index" > $f_index
+if [ ! -e $f_index ]; then
+	echo "$conf_index" >$f_index
 fi
-
 
 # remove the FPM conf
 for f in $(find /etc/php/ -name 10-${app}.conf); do rm $f; done
@@ -80,33 +72,30 @@ for f in $(find /etc/php/ -name 10-${app}.conf); do rm $f; done
 # FPM conf creation
 f_fpm=/etc/php/${php}/fpm/pool.d/10-${app}.conf
 # if [ ! -e $f_fpm ];
-# then 
+# then
 
-echo "$conf_fpm" > $f_fpm
+echo "$conf_fpm" >$f_fpm
 
 service php${php}-fpm restart
 # fi
-cat $f_fpm	
-
+cat $f_fpm
 
 # reload all fpm
-for v in $(find /etc/systemd/system  -name "php[0-9].*"| sed "s%-fpm.service%%g"| sed "s%.*php%%g")
-do 
+for v in $(find /etc/systemd/system -name "php[0-9].*" | sed "s%-fpm.service%%g" | sed "s%.*php%%g"); do
 	service php$v-fpm reload
-done 
+done
 
 mkdir -p $d_app/tmp/sessions
 
-# file & folders rights bullozer 
+# file & folders rights bullozer
 find $d_app -type f -exec chmod 664 {} \;
 find $d_app -type d -exec chmod 2775 {} \;
- 
+
 # if user app exists set user & group rights
-if getent passwd $app &> /dev/null
-then
+if getent passwd $app &>/dev/null; then
 	cd $d_app
 
- 	chown $app:www-data .
+	chown $app:www-data .
 	chown $app:www-data * -R
 fi
 
@@ -115,10 +104,9 @@ mkdir -p $d_app/.ssh
 touch $d_app/.ssh/authorized_keys
 mkdir -p $d_app/etc/ssh/
 
-
 if [ ! -e $d_app/etc/ssh/passwd ]; then
 	ssh_passwd=$(gen_urandom_passwd 10)
-	echo $ssh_passwd > $d_app/etc/ssh/passwd
+	echo $ssh_passwd >$d_app/etc/ssh/passwd
 
 	echo -e "$ssh_passwd\n$ssh_passwd" | passwd $app
 
@@ -129,8 +117,6 @@ if [ ! -e $d_app/etc/ssh/passwd ]; then
 
 	chmod 2750 $d_app
 fi
-
-
 
 # if [ -n "$template_make" ]; then
 # 	[ "$template_make" = "pma" ] && tb template sudo/pma/make $app $php
@@ -144,7 +130,7 @@ fi
 # SSL certificate creation
 if [[ "$certbot" = "on" ]]; then
 
-	#if domain fcame from command lie 
+	#if domain fcame from command lie
 	if [[ "$dom_from_cl" = "on" ]]; then
 
 		# webdomain SSL certificat
@@ -155,9 +141,9 @@ if [[ "$certbot" = "on" ]]; then
 		$cert
 
 		echo "$webdomain"
-		
+
 	else
-			# app.webdomain certificat
-			certbot run -n --expand --nginx --agree-tos -d $app.$webdomain -m certbot_email=$email --redirect
+		# app.webdomain certificat
+		certbot run -n --expand --nginx --agree-tos -d $app.$webdomain -m certbot_email=$email --redirect
 	fi
 fi

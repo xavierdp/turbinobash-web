@@ -1,0 +1,33 @@
+#!/bin/bash
+tb_getopt domain - $@
+
+export DEBIAN_FRONTEND=noninteractive
+
+apt install -y postfix bsd-mailx mutt
+
+echo "
+smtpd_banner = $domain
+biff = no
+append_dot_mydomain = no
+readme_directory = no
+compatibility_level = 3.6
+
+myhostname = pulse0.theta.ovh
+alias_maps = hash:/etc/aliases
+alias_database = hash:/etc/aliases
+myorigin = /etc/mailname
+mydestination = $domain,localhost
+#relayhost = 
+mynetworks = 127.0.0.0/8 [::ffff:127.0.0.0]/104 [::1]/128
+mailbox_size_limit = 0
+recipient_delimiter = +
+inet_interfaces = loopback-only
+#default_transport = 
+relay_transport = error
+inet_protocols = all
+" >/etc/postfix/main.cf
+
+service postfix reload
+
+echoc -g2 "echo zest | mailx -s zest yourmail@domain.tld"
+echoc -g2 "tail -f /var/log/syslog"
