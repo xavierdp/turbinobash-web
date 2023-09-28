@@ -40,11 +40,11 @@ service php7.4-fpm restart
 service php8.1-fpm restart
 service mariadb restart
 
-echoc -y2 "# quit shell and comeback to enable tb completion"
+echo "# quit shell and comeback to enable tb completion"
 
-echoc -y2 "# MARIADB"
-echoc -y2 "# /root/.my.cnf"
+echo "# MARIADB"
+echo "# /root/.my.cnf"
 cat /root/.my.cnf
 
-echoc -g2 "# Install phpMyAdmin"
-echoc -g2 "tb app sudo/create pma-v1 --certbot --template_install=pma"
+echo "# Install phpMyAdmin"
+echo "tb app sudo/create pma-v1 --certbot --template_install=pma"
