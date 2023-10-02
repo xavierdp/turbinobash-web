@@ -7,13 +7,13 @@ d_ssl=/etc/ssl/base
 
 mkdir -p $d_ssl
 
-openssl req  -nodes -new -x509 -days 3650 -keyout $d_ssl/base.key -out  $d_ssl/base.csr -subj "/C=FR/ST=HERAUKT/L=TRUC/O=MYCOMPANY/OU=IT/CN=$webdomain"
+openssl req -nodes -new -x509 -days 3650 -keyout $d_ssl/base.key -out $d_ssl/base.csr -subj "/C=FR/ST=HERAUKT/L=TRUC/O=MYCOMPANY/OU=IT/CN=$webdomain"
 
 rm -f /etc/nginx/sites-enabled/01-base.conf
 rm -f /etc/apache2/sites-enabled/01-base.conf
 
 if [ "$apache" = "on" ]; then
-  echo "<VirtualHost *:80>
+	echo "<VirtualHost *:80>
 	DocumentRoot /var/www/html
 	<Directory /var/www/html>
 		Require all granted
@@ -29,11 +29,11 @@ if [ "$apache" = "on" ]; then
 	SSLCertificateFile /etc/ssl/base/base.csr
 	SSLCertificateKeyFile /etc/ssl/base/base.key
 </VirtualHost>
-" > /etc/apache2/sites-enabled/01-base.conf
+" >/etc/apache2/sites-enabled/01-base.conf
 fi
 
 if [ "$hybrid" = "on" ]; then
-  echo "<VirtualHost *:4443>
+	echo "<VirtualHost *:444>
 	DocumentRoot /var/www/html
 	<Directory /var/www/html>
 		Require all granted
@@ -42,12 +42,11 @@ if [ "$hybrid" = "on" ]; then
 	SSLCertificateFile /etc/ssl/base/base.csr
 	SSLCertificateKeyFile /etc/ssl/base/base.key
 </VirtualHost>
-" > /etc/apache2/sites-enabled/01-base.conf
+" >/etc/apache2/sites-enabled/01-base.conf
 fi
 
-
 if [[ "$nginx" = "on" || "$hybrid" = "on" || "$proxy" = "on" ]]; then
-  echo "server {
+	echo "server {
     server_name _;
     root /var/www/html;
     index index.html;
@@ -65,9 +64,8 @@ server {
     ssl_certificate_key /etc/ssl/base/base.key;
 }
 
-" > /etc/nginx/sites-enabled/01-base.conf
+" >/etc/nginx/sites-enabled/01-base.conf
 fi
-
 
 echo $d_ssl/base.crt
 echo $d_ssl/base.key

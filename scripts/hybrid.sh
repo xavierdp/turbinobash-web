@@ -34,6 +34,7 @@ tb app sudo/install/web --hybrid
 tb app sudo/install/ssl $hostname --hybrid
 tb app sudo/way/init hybrid $email $hostname $php_default_version
 tb app sudo/install/files
+
 service apache2 restart
 service nginx restart
 service php7.4-fpm restart

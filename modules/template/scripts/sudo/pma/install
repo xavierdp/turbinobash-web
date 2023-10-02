@@ -16,11 +16,6 @@ cp -r -v $d_stock $d_app/app/webroot
 
 tb app sudo/bulldozer $app
 
-
 d_config=$TB_MODULE_DIR/templates/pma
 
-cat $d_config/config.inc.php|sed "s%TB_BLOWFISH_SECRET%$(gen_urandom_passwd 32)%g" > $d_app/app/webroot/config.inc.php
-
-
-
-
+cat $d_config/config.inc.php | sed "s%TB_BLOWFISH_SECRET%$(gen_urandom_passwd 32)%g" >$d_app/app/webroot/config.inc.php

@@ -1,0 +1,13 @@
+#!/bin/bash
+
+#C# All $(app_list)
+
+tb_getopt app php=$php - $@
+
+d_app=/apps/$app
+
+echoc -g2 "### MYSQL ###"
+cat $d_app/etc/mysql/localhost/passwd
+
+echoc -g2 "### SSH ###"
+cat $d_app/etc/ssh/passwd

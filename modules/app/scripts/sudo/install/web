@@ -1,6 +1,10 @@
 #!/bin/bash
 #C--# --nginx --apache --hybrid --proxy
 
+rm -f /etc/apache2/sites-enabled/*
+rm -f /etc/ngnix/sites-enabled/*
+rm -f /etc/apache2/ports.conf
+
 if [ "$apache" = "on" ]; then
   apt purge -y nginx nginx-core python3-certbot-nginx
 fi
@@ -15,7 +19,7 @@ fi
 
 if [[ "$hybrid" = "on" || "$nginx" = "on" || "$proxy" = "on" ]]; then
   apt install -y nginx certbot certbot python3-certbot-nginx
-  
+
   rm -f /etc/nginx/sites-enabled/default
 fi
 
@@ -26,12 +30,12 @@ if [[ "$hybrid" = "on" || "$apache" = "on" ]]; then
 fi
 
 if [ "$hybrid" = "on" ]; then
-  echo "Listen 4443" > /etc/apache2/ports.conf
+  echo "Listen 444" >/etc/apache2/ports.conf
 fi
 
 if [ "$apache" = "on" ]; then
-  echo "Listen 443" > /etc/apache2/ports.conf
-  echo "Listen 80" >> /etc/apache2/ports.conf
+  echo "Listen 443" >/etc/apache2/ports.conf
+  echo "Listen 80" >>/etc/apache2/ports.conf
 fi
 
 if [[ "$hybrid" = "on" || "$apache" = "on" ]]; then
@@ -42,6 +46,6 @@ if [[ "$hybrid" = "on" || "$apache" = "on" ]]; then
   service apache2 restart
 fi
 
-echo WWW > /var/www/html/index.html
+echo WWW >/var/www/html/index.html
 
-apt autoremove -y 
+apt autoremove -y

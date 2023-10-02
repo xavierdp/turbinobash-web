@@ -105,7 +105,7 @@ touch $d_app/.ssh/authorized_keys
 mkdir -p $d_app/etc/ssh/
 
 if [ ! -e $d_app/etc/ssh/passwd ]; then
-	ssh_passwd=$(gen_urandom_passwd 10)
+	ssh_passwd=$(gen_urandom_passwd 20)
 	echo $ssh_passwd >$d_app/etc/ssh/passwd
 
 	echo -e "$ssh_passwd\n$ssh_passwd" | passwd $app
@@ -118,13 +118,9 @@ if [ ! -e $d_app/etc/ssh/passwd ]; then
 	chmod 2750 $d_app
 fi
 
-# if [ -n "$template_make" ]; then
-# 	[ "$template_make" = "pma" ] && tb template sudo/pma/make $app $php
-# fi
-
 if [ -n "$template" ]; then
-	[ "$template" = "pma" ] && tb template sudo/$template/install $app $php
-	[ "$template" = "joomla" ] && tb template sudo/$template/install $app $php
+	[ "$template" = "pma" ] && tb template sudo/$template/install $app
+	[ "$template" = "joomla" ] && tb template sudo/$template/install $app
 fi
 
 # SSL certificate creation
