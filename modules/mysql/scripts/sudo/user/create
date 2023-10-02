@@ -1,4 +1,4 @@
-#kate: syntax bash;
+#!/bin/bash
 
 mysql_user_create $@
 

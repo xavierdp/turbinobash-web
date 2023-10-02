@@ -1,4 +1,4 @@
-#kate: syntax bash;
+#!/bin/bash
 
 #C# $(mysql_db_list)
 #C# $(mysql_table_list ${A_PARAMS[CINDEX-1]})

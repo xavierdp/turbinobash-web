@@ -1,17 +1,16 @@
 #!/bin/bash
-# kate: syntax bash;
+#!/bin/bash
 
-function mysql_query
-{
+function mysql_query {
 	local db_user db_passwd file d_home db_host_to db_port the_port
 
-# 	[ -z "$SQL" ] && return 0
+	# 	[ -z "$SQL" ] && return 0
 
 	[[ "$@" =~ ^.*-h\ ?([a-z0-9.]*).* ]] && db_host_to=${BASH_REMATCH[1]}
 
- 	[ -z "$db_host_to" ] && db_host_to=localhost
+	[ -z "$db_host_to" ] && db_host_to=localhost
 
-	db_user=$(id -u -n);
+	db_user=$(id -u -n)
 
 	d_home=$(grep ^$db_user: /etc/passwd | awk -F[:] '{print $6}')
 
@@ -30,9 +29,9 @@ function mysql_query
 
 	if [ -e $f_cnf ]; then
 		if [ -n "$SQL" ]; then
-			echo "$SQL" | mysql -B -u$db_user  -h$db_host_to -s $the_port $@
+			echo "$SQL" | mysql -B -u$db_user -h$db_host_to -s $the_port $@
 		else
-			mysql -B -u$db_user  -h$db_host_to -s $the_port $@ <&0
+			mysql -B -u$db_user -h$db_host_to -s $the_port $@ <&0
 		fi
 	else
 		echoc -y1 "$f_passwd unexistant !"
@@ -41,8 +40,7 @@ function mysql_query
 	return 0
 }
 
-function mysql_user_list
-{
+function mysql_user_list {
 	local SQL
 	SQL="SELECT CONCAT(user,'@',host) FROM user;"
 
@@ -52,14 +50,10 @@ function mysql_user_list
 
 	mysql_query mysql $the_host | sed -e '/^root@localhost$\|^debian-sys-maint@localhost$/d'
 
-
 	return 0
 }
 
-
-
-function mysql_db_list
-{
+function mysql_db_list {
 	local SQL
 
 	SQL="SHOW DATABASES;"
@@ -73,8 +67,7 @@ function mysql_db_list
 	return 0
 }
 
-function mysql_table_list
-{
+function mysql_table_list {
 	local SQL
 
 	SQL="SELECT TABLE_NAME FROM TABLES WHERE TABLE_SCHEMA='$1';"

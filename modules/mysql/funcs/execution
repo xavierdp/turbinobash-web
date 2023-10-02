@@ -1,4 +1,4 @@
-#kate: syntax bash;
+#!/bin/bash
 
 . $TB_DIR_CURRENT/funcs/common
 
@@ -64,6 +64,7 @@ function mysql_user_remove {
 	if [ -n "$(mysql_user_exists $user_host)" ]; then
 		[ "$force" = on ] || ask_N_stop "are you sure you want remove mysql user '$db_user'@'$db_host'"
 
+		SQL+="FLUSH PRIVILEGES;"
 		SQL+="DROP USER '$db_user'@'$db_host_from';"
 		SQL+="FLUSH PRIVILEGES;"
 		echoc -c0 "$SQL"
@@ -111,8 +112,9 @@ password=$db_passwd
 	echo "DELETE FROM mysql.global_priv WHERE User='';" | mysql -uroot mysql
 
 	mysql_chroot_stop
-	service mariadb restart
+	# service mariadb restart
 	cat /root/.my.cnf
+
 	return 0
 }
 
@@ -134,13 +136,19 @@ function mysql_chroot_start {
 }
 
 function mysql_chroot_stop {
-	killall -9 mysqld && sleep 1 || true
-	killall -9 mariadb && sleep 1 || true
+	systemctl set-environment MYSQLD_OPTS=""
 
-	service mysql stop
+	echo "FLUSH PRIVILEGES" | mysql | true
+
 	service mariadb stop
 
+	killall -9 mariadb && sleep 1 || true
+
+	# service mysql stop
+
 	rm -fv /var/run/mysqld/mysqld.sock
+
+	systemctl start mariadb
 
 	return 0
 }

@@ -1,9 +1,8 @@
-# kate: syntax bash;
+#!/bin/bash
 
 [ -z "$(which mysql)" ] && exit 0
 
-for i in system
-do
+for i in system; do
 	. $TB_DIR_FUNCS/$i
 done
 

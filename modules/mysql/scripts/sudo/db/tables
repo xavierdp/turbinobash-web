@@ -1,4 +1,4 @@
-#kate: syntax bash;
+#!/bin/bash
 
 #C# $(mysql_db_list)
 

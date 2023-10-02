@@ -1,6 +1,5 @@
 #!/bin/bash
 
-apt install -y  mariadb-server
+apt install -y mariadb-server
 
 tb mysql sudo/install/root --force
-

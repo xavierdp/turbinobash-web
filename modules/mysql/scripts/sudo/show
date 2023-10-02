@@ -1,4 +1,4 @@
-# kate: syntax bash;
+#!/bin/bash
 
 #C# $(sed -e '/^\t*[a-z_]*) #\|^ *[a-z_]*) #/!d' -e 's%) #%%g' $TB_RUN_FILE)
 
