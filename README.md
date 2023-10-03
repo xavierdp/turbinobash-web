@@ -95,12 +95,19 @@ define( 'DB_HOST', 'localhost' );
 you make a test-v2
 
 ```bash
+# copy files app from test-v1 to test-v2
 cd /apps/test-v2
 cp /apps/test-v1/app . -rf
 ```
 
 ```bash
-wp search-replace 'test-v1' 'test-v2'
+# copy database from test-v1 to test-v2
+mysqldump test-v1 | mysql test-v2
+```
+
+```bash
+# Imagine it's a Wordpress : you have to replace the domain into the database
+wp search-replace 'test-v1.sub.domain.tld' 'test-v2.sub.domain.tld'
 ```
 https://developer.wordpress.org/cli/commands/search-replace/
 
