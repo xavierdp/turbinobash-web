@@ -1,5 +1,7 @@
 # turbinobash-web
 
+**turbinobash-web** is a small commandline PLESK like
+
 Normaly comptatible with debian 11 (debian 12 not tested) et ubuntu 22.04
 
 ## turbinobash 
@@ -11,8 +13,7 @@ Normaly comptatible with debian 11 (debian 12 not tested) et ubuntu 22.04
 * mysql : to manage mysq databases things
 * template : to manage templates used with app
 
-
-There is 4 scrip in scripts directory to isntall 4 way of web use :
+There is 4 scripts in the scripts directory to isntall 4 ways of web use :
 * nginx : pure nginx usage + php fpm + mariadb
 * apache : pure apache usage + php fpm + mariadb
 * hybrid : nginx proxying towards apache + php fpm + mariadb
@@ -193,7 +194,6 @@ How templates are working
 tb app sudo/create pma-v1 --certbot --template_install=pma
 ```
 
-
-
+Add a an install mode to use à container which remote a proxy one
 
 
