@@ -198,7 +198,7 @@ Send a email if a partition is more filled tha 85%
 How templates are working
 
 ```bash
-tb app sudo/create pma-v1 --certbot --template_install=pma
+tb app sudo/create pma-v1 --certbot --template=pma
 ```
 
 Add a an install mode to use à container which remote a proxy one

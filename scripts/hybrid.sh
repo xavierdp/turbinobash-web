@@ -48,4 +48,4 @@ echo "# /root/.my.cnf"
 cat /root/.my.cnf
 
 echo "# Install phpMyAdmin"
-echo "tb app sudo/create pma-v1 --certbot --template_install=pma"
+echo "tb app sudo/create pma-v1 --certbot --template=pma"
