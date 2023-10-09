@@ -37,8 +37,8 @@ if [ -n "$(which mariadb)" ]; then
 	tb mysql sudo/grant $app all $app
 fi
 
-# d_ssl=$d_app/etc/ssl
-# mkdir -p $d_ssl
+d_ssl=$d_app/etc/ssl
+mkdir -p $d_ssl
 
 # source app confs
 . $TB_MODULE_DIR/templates/hybrid.conf
@@ -81,16 +81,18 @@ else
 
 	echo "$conf_apache_app" >$f_apache
 fi
-# openssl req -new -key $d_ssl/base.key -out $d_ssl/server.csr -subj "/C=FR/ST=REGION/L=TRUC/O=MYCOMPANY/OU=IT/CN=$ssl_domain"
-# openssl req -nodes -new -x509 -days 3650 -keyout $d_ssl/base.key -out $d_ssl/base.csr -subj "/C=FR/ST=REGION/L=TRUC/O=MYCOMPANY/OU=IT/CN=$ssl_domain"
 
+
+openssl req -nodes -new -x509 -days 3650 -keyout $d_ssl/base.key -out $d_ssl/base.csr -subj "/C=FR/ST=REGION/L=TRUC/O=MYCOMPANY/OU=IT/CN=$ssl_domain"
+openssl req -new -key $d_ssl/base.key -out $d_ssl/server.csr -subj "/C=FR/ST=REGION/L=TRUC/O=MYCOMPANY/OU=IT/CN=$ssl_domain"
+
+exit
 service apache2 reload
 
 # fi
 cat $f_apache
 
 echo $ssl_domain
-# exit
 # default php index file
 f_index=$d_app/app/webroot/index.php
 if [ ! -e $f_index ]; then
