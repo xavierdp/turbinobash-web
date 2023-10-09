@@ -86,7 +86,7 @@ fi
 openssl req -nodes -new -x509 -days 3650 -keyout $d_ssl/base.key -out $d_ssl/base.csr -subj "/C=FR/ST=REGION/L=TRUC/O=MYCOMPANY/OU=IT/CN=$ssl_domain"
 openssl req -new -key $d_ssl/base.key -out $d_ssl/server.csr -subj "/C=FR/ST=REGION/L=TRUC/O=MYCOMPANY/OU=IT/CN=$ssl_domain"
 
-exit
+# exit
 service apache2 reload
 
 # fi
