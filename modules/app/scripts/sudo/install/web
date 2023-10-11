@@ -30,7 +30,7 @@ if [[ "$hybrid" = "on" || "$apache" = "on" ]]; then
 fi
 
 if [ "$hybrid" = "on" ]; then
-  echo "Listen 444" >/etc/apache2/ports.conf
+  echo "Listen 4443" >/etc/apache2/ports.conf
 fi
 
 if [ "$apache" = "on" ]; then
