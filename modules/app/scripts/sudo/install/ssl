@@ -33,7 +33,7 @@ if [ "$apache" = "on" ]; then
 fi
 
 if [ "$hybrid" = "on" ]; then
-	echo "<VirtualHost *:444>
+	echo "<VirtualHost *:4443>
 	DocumentRoot /var/www/html
 	<Directory /var/www/html>
 		Require all granted

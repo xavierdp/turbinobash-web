@@ -68,31 +68,40 @@ f_apache=/etc/apache2/sites-enabled/10-$app.conf
 # if [ ! -e $f_apache ];
 # then
 
-# if domain came from --options
-
+# if domain came from --webdomain
 if [[ "$dom_from_cl" = "on" ]]; then
 
 	echo "$conf_apache_dom" >$f_apache
+	ssl_domain=${webdomain}
 
 	# add www if option --www
-	[ "$www" = "on" ] && echo "$conf_apache_dom_www" >$f_apache
+	if [ "$www" = "on" ]; then
+		echo "$conf_apache_dom_www" >$f_apache
+		
+		openssl req -nodes -new -x509 -days 3650 -keyout $d_ssl/server.key -out $d_ssl/server.csr -subj /C=FR/ST=REGION/L=TRUC/O=MYCOMPANY/OU=IT/CN=www.$ssl_domain/CN=$ssl_domain
+
+	
+	else
+		openssl req -nodes -new -x509 -days 3650 -keyout $d_ssl/server.key -out $d_ssl/server.csr -subj /C=FR/ST=REGION/L=TRUC/O=MYCOMPANY/OU=IT/CN=$ssl_domain
+	fi
+
 else
 	ssl_domain=${app}.${webdomain}
 
 	echo "$conf_apache_app" >$f_apache
+	
+	openssl req -nodes -new -x509 -days 3650 -keyout $d_ssl/server.key -out $d_ssl/server.csr -subj /C=FR/ST=REGION/L=TRUC/O=MYCOMPANY/OU=IT/CN=$ssl_domain
 fi
 
 
-openssl req -nodes -new -x509 -days 3650 -keyout $d_ssl/base.key -out $d_ssl/base.csr -subj "/C=FR/ST=REGION/L=TRUC/O=MYCOMPANY/OU=IT/CN=$ssl_domain"
-openssl req -new -key $d_ssl/base.key -out $d_ssl/server.csr -subj "/C=FR/ST=REGION/L=TRUC/O=MYCOMPANY/OU=IT/CN=$ssl_domain"
+echo $ssl_domain
 
-# exit
+ 
 service apache2 reload
 
 # fi
 cat $f_apache
 
-echo $ssl_domain
 # default php index file
 f_index=$d_app/app/webroot/index.php
 if [ ! -e $f_index ]; then
@@ -151,6 +160,16 @@ if [ ! -e $d_app/etc/ssh/passwd ]; then
 	chmod 2750 $d_app
 fi
 
+
+
+if [ -n "$template_make" ]; then
+	[ "$template_make" = "pma" ] && tb template sudo/pma/make $app $php
+fi
+
+if [ -n "$template" ]; then
+	[ "$template" = "pma" ] && tb template sudo/pma/install $app $php
+fi
+
 # SSL certificate creation
 if [[ "$certbot" = "on" ]]; then
 
@@ -170,10 +189,5 @@ if [[ "$certbot" = "on" ]]; then
 	fi
 fi
 
-if [ -n "$template_make" ]; then
-	[ "$template_make" = "pma" ] && tb template sudo/pma/make $app $php
-fi
-
-if [ -n "$template" ]; then
-	[ "$template" = "pma" ] && tb template sudo/pma/install $app $php
-fi
+# openssl req -nodes -new -x509 -days 3650 -keyout $d_ssl/server.key -out $d_ssl/base.csr -subj "/C=FR/ST=REGION/L=TRUC/O=MYCOMPANY/OU=IT/CN=$ssl_domain"
+# openssl req -new -key $d_ssl/server.key -out $d_ssl/server.csr -subj "/C=FR/ST=REGION/L=TRUC/O=MYCOMPANY/OU=IT/CN=$ssl_domain"

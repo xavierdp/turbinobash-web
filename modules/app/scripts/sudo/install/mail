@@ -12,7 +12,7 @@ append_dot_mydomain = no
 readme_directory = no
 compatibility_level = 3.6
 
-myhostname = pulse0.theta.ovh
+myhostname = $domain
 alias_maps = hash:/etc/aliases
 alias_database = hash:/etc/aliases
 myorigin = /etc/mailname
