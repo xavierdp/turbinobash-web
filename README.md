@@ -102,7 +102,7 @@ define( 'DB_PASSWORD', trim(file_get_contents("/apps/$_SERVER[USER]/etc/mysql/lo
 define( 'DB_HOST', 'localhost' );
 ```
 
-### So each app is transportable !!
+### So each app is movable !!
 
 you make a test-v2
 
