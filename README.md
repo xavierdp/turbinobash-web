@@ -5,6 +5,7 @@
 Normaly comptatible with debian 11 (debian 12 not tested) et ubuntu 22.04
 
 ## turbinobash 
+
 **turbinobash** is a bash framewok i made to manage bash script and script completion
 
 **turbinobash-web** is a combination of 4 modules
@@ -18,6 +19,15 @@ There is **4 scripts** in the scripts directory to isntall 4 ways of web use :
 * apache : pure apache usage + php fpm + mariadb
 * hybrid : nginx proxying towards apache + php fpm + mariadb
 * proxy : nginx only use for proxying
+
+
+```bash
+cd /var/lib
+
+git clone https://github.com/xavierdp/turbinobash-web.git
+
+cd turbinobash-web/scripts
+```
 
 
 ```bash
