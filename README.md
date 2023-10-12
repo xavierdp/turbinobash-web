@@ -253,7 +253,7 @@ Add a an install mode to use à container which remote a proxy one to
 
 Backup crontab
 
-## Wordpress installation
+## Wordpress installation exemple 
 
 #### App test-v1 Wordpress installation
 
