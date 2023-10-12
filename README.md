@@ -119,16 +119,23 @@ Pif paf hopla and the test-v2 is ready !!
 tb app sudo/bulldozer test-v1
 ```
 #### Change PHP version
+```bash
 tb app sudo/change/php test-v1 8.1
 
-#### Install php version 
+#### Install php version
+```bash
 tb app sudo/install/php 8.2
+```
 
 #### Install wp-cli
+```bash
 tb app sudo/install/wp-cli
+```
 
 #### Install wp-composer
+```bash
 tb app sudo/install/wp-composer
+```
 
 #### Remove an app
 ```bash
