@@ -267,7 +267,7 @@ cd /apps/test-v1/app
 wget https://wordpress.org/latest.zip
 unzip latest.zip
 
-rm webroot
+rm webroot -rf
 
 mv wordpress webroot
 
@@ -299,6 +299,9 @@ Goto your test-v1 app url https://test-v1.sub.domain.tld/ and finish the install
 #### Copy test-v1 to test-v2
 
 ```bash
+# Install wp-cli
+tb app sudo/install/wp-cli
+
 # App creation
 tb app sudo/create test-v2 --certbot
 
