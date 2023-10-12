@@ -121,8 +121,16 @@ tb app sudo/bulldozer test-v1
 #### Change PHP version
 tb app sudo/change/php test-v1 8.1
 
-#### Remove an app
+#### Install php version 
+tb app sudo/install/php 8.2
 
+#### Install wp-cli
+tb app sudo/install/wp-cli
+
+#### Install wp-composer
+tb app sudo/install/wp-composer
+
+#### Remove an app
 ```bash
 tb app sudo/remove test-v1
 ```
