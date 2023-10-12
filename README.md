@@ -56,7 +56,7 @@ if you start lauch apache.sh and after nginx.sh, the apache things are purged
 
 if you start lauch apache.sh or nginx.sh and after proxy.sh, the apache and mariadb things are purged
 
-
+### Usage
 ```bash
 # create test-v1.sub.mydomain.tld with SSL
 tb app sudo/create test-v1 --certbot
