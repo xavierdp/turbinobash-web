@@ -55,7 +55,7 @@ bash proxy.sh johndoe@domain.tld sub.mydomain.tld
 
 ![image](https://github.com/xavierdp/turbinobash-web/assets/38561912/0678f6d5-b19c-406f-a229-cf4078583749)
 
-
+### apt purge
 
 if you start lauch nginx.sh and after apache.sh, the nginx things are purged
 
