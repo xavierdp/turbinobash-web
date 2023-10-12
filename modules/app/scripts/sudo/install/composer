@@ -1,0 +1,12 @@
+#!/bin/bash
+
+cd /tmp
+
+php -r "copy('https://getcomposer.org/installer', 'composer-setup.php');"
+php composer-setup.php
+php -r "unlink('composer-setup.php');"
+
+mv composer.phar /usr/local/bin/composer
+
+echoc -g2 composer installed to /usr/local/bin/composer
+echo 
