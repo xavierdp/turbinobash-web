@@ -253,3 +253,83 @@ Add a an install mode to use à container which remote a proxy one to
 
 Backup crontab
 
+## Wordpress installation
+
+#### App test-v1 Wordpress installation
+
+```bash
+# App creation
+tb app sudo/create test-v1 --certbot
+
+cd /apps/test-v1/app
+
+# Wordpress download
+wget https://wordpress.org/latest.zip
+unzip latest.zip
+
+rm webroot
+
+mv wordpress webroot
+
+cd webroot
+
+# Rights bulldoser
+tb app sudo/bulldozer test-v1
+
+# Conf file copy
+cp wp-config-sample.php wp-config.php
+
+
+nano wp-config.php
+
+```
+
+```php
+// remove current database conenction code and replace by
+
+define( 'DB_NAME', $_SERVER["USER"]);
+define( 'DB_USER', $_SERVER["USER"]);
+define( 'DB_PASSWORD', trim(file_get_contents("/apps/$_SERVER[USER]/etc/mysql/localhost/passwd")));
+define( 'DB_HOST', 'localhost' );
+```
+
+Goto your test-v1 app url https://test-v1.sub.domain.tld/ and finish the install
+
+
+#### Copy test-v1 to test-v2
+
+```bash
+# App creation
+tb app sudo/create test-v2 --certbot
+
+cd /apps/test-v2
+
+# Copy files from test-v1 to test-v2
+cp /apps/test-v1/app/ . -rf
+
+tb app sudo/bulldozer test-v2
+
+# Copy database  from test-v1 to test-v2
+mysqldump test-v1|mysql test-v2
+
+# Become test-v2
+su test-v2
+
+cd
+
+cd app/webroot
+
+
+# replace test-v1 to test-v2 in database
+wp search-replace "test-v1" "test-v2"
+
+# Replace whatever you need in database with this tool
+```
+
+#### TADA
+
+Goto your test-v2 app url https://test-v2.sub.domain.tld/ and the copy is working
+
+
+
+
