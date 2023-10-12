@@ -118,6 +118,8 @@ Pif paf hopla and the test-v2 is ready !!
 ```bash
 tb app sudo/bulldozer test-v1
 ```
+#### Change PHP version
+tb app sudo/change/php test-v1 8.1
 
 #### Remove an app
 
