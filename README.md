@@ -13,7 +13,7 @@ Normaly comptatible with debian 11 (debian 12 not tested) et ubuntu 22.04
 * mysql : to manage mysq databases things
 * template : to manage templates used with app
 
-There is 4 scripts in the scripts directory to isntall 4 ways of web use :
+There is **4 scripts** in the scripts directory to isntall 4 ways of web use :
 * nginx : pure nginx usage + php fpm + mariadb
 * apache : pure apache usage + php fpm + mariadb
 * hybrid : nginx proxying towards apache + php fpm + mariadb
@@ -21,17 +21,31 @@ There is 4 scripts in the scripts directory to isntall 4 ways of web use :
 
 
 ```bash
+# johndoe@domain.tld is the email to use with letsencrypt
+# sub.mydomain.tld is the sub domain pluged with the container's IP
+
+# NGINX
 bash nginx.sh johndoe@domain.tld sub.mydomain.tld
+
+# APACHE2
 bash apache.sh johndoe@domain.tld sub.mydomain.tld
+
+# NGINX proxying APACHE2
 bash hybrid.sh johndoe@domain.tld sub.mydomain.tld
+
+# Just NGINX proxying
 bash proxy.sh johndoe@domain.tld sub.mydomain.tld
 ```
 
-if you lauch nginx.sh and apache.sh, the nginx things are purged
+![image](https://github.com/xavierdp/turbinobash-web/assets/38561912/b273c47a-63de-40d0-bad6-759378de7551)
 
-if you lauch apache.sh and nginx.sh, the apache things are purged
 
-if you lauch apache.sh and proxy.sh, the apache and mariadb things are purged
+
+if you start lauch nginx.sh and after apache.sh, the nginx things are purged
+
+if you start lauch apache.sh and after nginx.sh, the apache things are purged
+
+if you start lauch apache.sh or nginx.sh and after proxy.sh, the apache and mariadb things are purged
 
 
 ```bash
