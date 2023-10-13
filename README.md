@@ -21,12 +21,8 @@ There is **4 scripts** in the scripts directory to isntall 4 ways of web use :
 * proxy : nginx only use for proxying
 
 [![PMA INSTALL](https://img.youtube.com/vi/ZAB2zNwUv_k/1.jpg)](https://www.youtube.com/watch?v=ZAB2zNwUv_k)
-
-https://youtu.be/ZAB2zNwUv_k
-
-https://youtu.be/CGkAHvZpaOk
-
-https://youtu.be/JCZSkcO8b84
+[![WORDPRESS INSTALL EXEMPLE](https://img.youtube.com/vi/CGkAHvZpaOk/1.jpg)](https://www.youtube.com/watch?v=CGkAHvZpaOk)
+[![TB INSTALL](https://img.youtube.com/vi/JCZSkcO8b84/1.jpg)](https://www.youtube.com/watch?v=JCZSkcO8b84)
 
 
 
