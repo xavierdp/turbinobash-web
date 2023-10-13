@@ -21,7 +21,7 @@ There is **4 scripts** in the scripts directory to isntall 4 ways of web use :
 * proxy : nginx only use for proxying
 
 
-[![IMAGE ALT TEXT](http://img.youtube.com/vi/ZAB2zNwUv_k/0.jpg)](http://www.youtube.com/watch?v=ZAB2zNwUv_k "PMA install")
+[![PMA INSTALL](http://img.youtube.com/vi/ZAB2zNwUv_k/0.jpg)](http://www.youtube.com/watch?v=ZAB2zNwUv_k "PMA install"){:target="_blank"} 
 
 
 https://youtu.be/ZAB2zNwUv_k
