@@ -20,8 +20,8 @@ There is **4 scripts** in the scripts directory to isntall 4 ways of web use :
 * hybrid : nginx proxying towards apache + php fpm + mariadb
 * proxy : nginx only use for proxying
 
-
-[![PMA INSTALL](http://img.youtube.com/vi/ZAB2zNwUv_k/0.jpg){:target="_blank"}](http://www.youtube.com/watch?v=ZAB2zNwUv_k "PMA install")
+[link](url){:target="_blank"}
+[![PMA INSTALL](http://img.youtube.com/vi/ZAB2zNwUv_k/0.jpg){:target="_blank" rel="noopener"}](http://www.youtube.com/watch?v=ZAB2zNwUv_k "PMA install")
 
 
 https://youtu.be/ZAB2zNwUv_k
