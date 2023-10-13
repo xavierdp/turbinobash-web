@@ -170,9 +170,9 @@ tb app sudo/install/php 8.2
 tb app sudo/install/wp-cli
 ```
 
-#### Install wp-composer
+#### Install composer
 ```bash
-tb app sudo/install/wp-composer
+tb app sudo/install/composer
 ```
 
 #### Remove an app
