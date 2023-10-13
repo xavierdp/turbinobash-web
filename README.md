@@ -20,6 +20,12 @@ There is **4 scripts** in the scripts directory to isntall 4 ways of web use :
 * hybrid : nginx proxying towards apache + php fpm + mariadb
 * proxy : nginx only use for proxying
 
+https://youtu.be/ZAB2zNwUv_k
+https://youtu.be/CGkAHvZpaOk
+https://youtu.be/JCZSkcO8b84
+
+
+
 ### Install
 ```bash
 cd /var/lib
