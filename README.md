@@ -246,7 +246,7 @@ Send a email if a partition is more filled tha 85%
 
 ```bash
 # m h  dom mon dow   command
-*/1 * * * * /bin/tb app sudo/diskalert name@domain.tld
+*/5 * * * * /bin/tb app sudo/diskalert name@domain.tld
 ```
 
 #### TODO
