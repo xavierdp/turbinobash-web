@@ -21,6 +21,9 @@ d_app=$d_apps/$app
 # user creation fi don't exists
 if ! getent passwd $app &>/dev/null; then
 	useradd -m -s/bin/bash ${app} -d $d_app
+
+	touch /var/mail/${app}
+	chown ${app}: /var/mail/${app}
 fi
 
 # directories creation
