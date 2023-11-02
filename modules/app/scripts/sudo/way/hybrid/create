@@ -2,7 +2,7 @@
 
 #C# All $(app_list)
 #C# $(find /usr/bin/ -name "php*.*"| sed 's%/usr/bin/php%%')
-#C--# --certbot	--webdomain --www --remove --template=pma --template=joomla
+#C--# --certbot	--webdomain= --www --remove --template=pma --template=joomla
 
 mkdir -p /apps
 
@@ -71,7 +71,7 @@ f_apache=/etc/apache2/sites-enabled/10-$app.conf
 # if [ ! -e $f_apache ];
 # then
 
-# if domain came from --webdomain
+# if domain came from --webdomain=
 if [[ "$dom_from_cl" = "on" ]]; then
 
 	echo "$conf_apache_dom" >$f_apache

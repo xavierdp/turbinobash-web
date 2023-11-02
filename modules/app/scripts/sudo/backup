@@ -9,12 +9,26 @@ date=$(date +'%y-%m-%d-%HH%M')
 d_sav1=/var/sav1/$(hostname)
 mkdir -p $d_sav1/{auto,system}
 
+
+backs_auto=15
+backs_sytem=15
+
+[ -e /etc/tb/backup ] && . /etc/tb/backup
+
+
+echo $backs_auto
+
+exit;
+
+
+
+
 if [ "$app" = All ]; then
-	for i in $(find $d_sav1/auto -maxdepth 1 -mindepth 1 -type d | sort | tac | sed '25,$!d'); do
+	for i in $(find $d_sav1/auto -maxdepth 1 -mindepth 1 -type d | sort | tac | sed $backs_auto',$!d'); do
 		rm -rf $i
 	done
 
-	for i in $(find $d_sav1/system -maxdepth 1 -mindepth 1 -type d | sort | tac | sed '20,$!d'); do
+	for i in $(find $d_sav1/system -maxdepth 1 -mindepth 1 -type d | sort | tac | sed $backs_sytem',$!d'); do
 		rm -rf $i
 	done
 

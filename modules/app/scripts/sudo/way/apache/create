@@ -2,7 +2,7 @@
 
 #C# All $(app_list)
 #C# $(find /usr/bin/ -name "php*.*"| sed 's%/usr/bin/php%%')
-#C--# --certbot	--webdomain --www --remove --template=pma --template=joomla
+#C--# --certbot	--webdomain= --www --remove --template=pma --template=joomla
 
 mkdir -p /apps
 
