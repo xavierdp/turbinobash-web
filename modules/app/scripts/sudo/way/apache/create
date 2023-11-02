@@ -27,7 +27,7 @@ if ! getent passwd $app &>/dev/null; then
 fi
 
 # directories creation
-mkdir -pv $d_app/{app/webroot,etc/php,log,sav,tmp,nosave}
+mkdir -pv $d_app/{app/webroot,etc/php,log,sav,tmp,nosav}
 
 # remember chosen php version
 echo $php >$d_app/etc/php/version
@@ -113,13 +113,10 @@ if [ ! -e $d_app/etc/ssh/passwd ]; then
 
 	echo -e "$ssh_passwd\n$ssh_passwd" | passwd $app
 
-	chmod 600 $d_app/etc/ssh/passwd
-	chown root: $d_app/etc/ssh/passwd
-	chmod 700 $d_app/etc/ssh/
-	chmod 600 $d_app/etc/ssh/*
-
-	chmod 2750 $d_app
+	# chmod 2750 $d_app
 fi
+
+tb app sudo/bulldozer $app
 
 if [ -n "$template" ]; then
 	[ "$template" = "pma" ] && tb template sudo/$template/install $app

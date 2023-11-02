@@ -20,7 +20,6 @@ else
 
 	if getent passwd $app &> /dev/null
 	then
-
 		chown $app:www-data $d_app * -R
 	fi
 
@@ -31,7 +30,7 @@ else
 	chown root: $d_app/etc/ssh/passwd
 	chmod 700 $d_app/etc/ssh/
 	chmod 600 $d_app/etc/ssh/*
-
+	#chmod 2750 $d_app
 fi
 
 return 0

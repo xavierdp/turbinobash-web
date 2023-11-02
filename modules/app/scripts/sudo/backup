@@ -60,7 +60,8 @@ if [ "$app" = All ]; then
 		echo "############## $dir"
 
 		mkdir -p $dir
-		tar cjf $dir/$i.tar.bz2 --exclude=./nosav -C /apps/$i .
+		tar cjf $dir/$i.tar.bz2 --exclude=./nosav -C /apps/$i . 
+
 	done
 	date
 	for i in $(app_list) $(tb mysql sudo/db/list); do
@@ -74,7 +75,7 @@ else
 
 	if [[ "$type" = "All" || "$type" = "app" ]]; then
 		echo "############## MANUAL $app APP $dir/$app.tar.bz2"
-		tar cjf $dir/$app.tar.bz2 -C /apps/$app .
+		tar cjf $dir/$app.tar.bz2 --exclude=./nosav -C /apps/$app .
 	fi
 
 	if [[ "$type" = "All" || "$type" = "db" ]]; then
