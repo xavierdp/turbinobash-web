@@ -66,7 +66,7 @@ if [ "$app" = All ]; then
 		echo "############## $dir"
 
 		mkdir -p $dir
-		tar cjf $dir/$i.tar.bz2 -C /apps/$i .
+		tar cjf $dir/$i.tar.bz2 --exclude=./ncloud/data -C /apps/$i .
 	done
 	date
 	for i in $(app_list) $(tb mysql sudo/db/list); do

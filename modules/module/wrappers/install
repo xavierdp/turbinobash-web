@@ -8,6 +8,9 @@ TB_DIR=$(realpath $(dirname $0)/../../..)
 
 LANG=C
 
+
+mkdir -p /etc/tb
+
 ########################################################################
 mkdir -p /etc/bash_completion.d
 dst=/etc/bash_completion.d/tb
