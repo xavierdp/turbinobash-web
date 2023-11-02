@@ -16,12 +16,6 @@ backs_sytem=15
 [ -e /etc/tb/backup ] && . /etc/tb/backup
 
 
-echo $backs_auto
-
-exit;
-
-
-
 
 if [ "$app" = All ]; then
 	for i in $(find $d_sav1/auto -maxdepth 1 -mindepth 1 -type d | sort | tac | sed $backs_auto',$!d'); do
@@ -66,7 +60,7 @@ if [ "$app" = All ]; then
 		echo "############## $dir"
 
 		mkdir -p $dir
-		tar cjf $dir/$i.tar.bz2 --exclude=./ncloud/data -C /apps/$i .
+		tar cjf $dir/$i.tar.bz2 --exclude=./nosav -C /apps/$i .
 	done
 	date
 	for i in $(app_list) $(tb mysql sudo/db/list); do
