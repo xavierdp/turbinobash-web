@@ -2,7 +2,7 @@
 
 **turbinobash-web** is a small commandline PLESK like
 
-Normaly comptatible with Debian 11 (PHP packages.sury.org is missing form Debian 12) et Ubuntu 22.04
+Comptatible with Debian 11 (PHP packages.sury.org is missing form Debian 12) et Ubuntu 22.04
 
 ## turbinobash 
 
