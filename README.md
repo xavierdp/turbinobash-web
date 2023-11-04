@@ -2,7 +2,9 @@
 
 **turbinobash-web** is a small commandline PLESK like
 
-Comptatible with Debian 11 (PHP packages.sury.org is missing form Debian 12) et Ubuntu 22.04
+The purpose isn't a DOCKER like : Its a tool between raw server administration and automated appilcation space management
+
+Comptatible with Debian 11 (PHP packages.sury.org is missing form Debian 12) et Ubuntu 22.04 and older
 
 ## turbinobash 
 
