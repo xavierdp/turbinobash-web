@@ -16,6 +16,8 @@ Comptatible with Debian 11 (PHP packages.sury.org is missing form Debian 12) et 
 * mysql : to manage mysq databases things
 * template : to manage templates used with app
 
+The most used module by user admin is app
+
 There is **4 scripts** in the scripts directory to isntall 4 ways of web use :
 * nginx : pure nginx usage + php fpm + mariadb
 * apache : pure apache usage + php fpm + mariadb
