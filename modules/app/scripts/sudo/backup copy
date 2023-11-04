@@ -52,11 +52,9 @@ if [ "$app" = All ]; then
 	done
 	echo
 
-
-	
 	date
 	echo "############## ALL APPs ##############"
-	for app in $(app_list); do
+	for $app in $(app_list); do
 		dir=$d_sav1/auto/$date/$app
 
 		echo "############## $dir"
@@ -64,10 +62,9 @@ if [ "$app" = All ]; then
 		mkdir -p $dir
 		tar cjf $dir/$app.tar.bz2 --exclude=./nosav -C /apps/$app . 
 
-		cp -r /var/spool/cron/crontabs/ $dir/
+		cp -r v/var/spool/cron/crontabs/ $dir/
 
 	done
-		echo
 
 
 	date
@@ -83,6 +80,7 @@ else
 	if [[ "$type" = "All" || "$type" = "app" ]]; then
 		echo "############## MANUAL $app APP $dir/$app.tar.bz2"
 		tar cjf $dir/$app.tar.bz2 --exclude=./nosav -C /apps/$app .
+
 		[ -e /var/spool/cron/crontabs/$app ]	&&	cp -vf /var/spool/cron/crontabs/$app $dir/crontab
 	fi
 
@@ -91,6 +89,6 @@ else
 		tb mysql sudo/db/dump $app | bzip2 >$dir/$app.sql.bz2
 	fi
 
-	echo
 	echo "############## Done"
+			
 fi
