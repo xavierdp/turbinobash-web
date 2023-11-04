@@ -404,6 +404,65 @@ tb app sudo/way/noweb/create app-v1
 
 ```
 
+### Node JS EXPRESS example
+```bash
+apt install npm
+
+tb app sudo/way/noweb/create express-v1
+
+cd /apps/express-v1/app
+
+npm i express
+
+# Edit main.js Hello World
+nano main.js
+```
+
+```javascript
+const express = require('express')
+const app = express()
+const port = 3000
+
+app.get('/', (req, res) => {
+  res.send('Hello World!')
+})
+
+app.listen(port, () => {
+  console.log(`Example app listening on port ${port}`)
+})
+```
+
+```bash
+node main.js
+# Example app listening on port 3000
+
+tb app sudo/way/proxy/create express-v1 http://127.0.0.1:3000 --certbot
+
+curl https://express-v1.sub.domain.tld
+# Hello World!
+
+# or better in root user
+npm install pm2 -g
+
+su express-v1
+
+cd /apps/express-v1/app
+pm2 start main
+
+# ENJOY !!!
+```
+![Alt text](image.png)
+![Alt text](image-1.png)
+
+
+
+
+
+
+
+
+
+
 
 
 
