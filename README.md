@@ -52,6 +52,10 @@ bash hybrid.sh johndoe@domain.tld sub.mydomain.tld
 
 # Just NGINX proxying
 bash proxy.sh johndoe@domain.tld sub.mydomain.tld
+
+# Only system NOWEB for stand alone CRON for example
+bash noweb.sh
+
 ```
 
 ### Set your DNS entries in the domain zone
@@ -70,7 +74,7 @@ if you start lauch apache.sh and after nginx.sh, the apache things are purged
 
 if you start lauch apache.sh or nginx.sh and after proxy.sh, the apache and mariadb things are purged
 
-### Usage
+### Usage for NGINX, APACHE or PROXY
 ```bash
 # create test-v1.sub.mydomain.tld with SSL
 tb app sudo/create test-v1 --certbot
@@ -83,6 +87,37 @@ tb app sudo/create test-v1 --certbot --webdomain sub.myotherdomain.tld --www
 
 # create a proxy towards a destination
 tb app sudo/way/proxy/create test-v1 https://127.0.0.1/ --certbot
+```
+
+### Turbinobash auto complete !!!
+
+```bash
+
+# just type and tab tab twice
+tb app ↹ ↹ 
+
+
+sudo/backup              sudo/info                sudo/install/mariadb     sudo/way/apache/create   sudo/way/noweb/remove
+sudo/bulldozer           sudo/install/base        sudo/install/php         sudo/way/apache/remove   sudo/way/proxy/create
+sudo/change/php          sudo/install/composer    sudo/install/ssl         sudo/way/hybrid/create   sudo/way/proxy/remove
+sudo/copy                sudo/install/ct-proxmox  sudo/install/web         sudo/way/hybrid/remove   test
+sudo/create              sudo/install/files       sudo/install/wp-cli      sudo/way/init            
+sudo/diskalert           sudo/install/mail        sudo/remove              sudo/way/noweb/create  
+
+# just type and tab tab twice
+tb app sudo/remove 
+
+coopnum-v1  pma-v1      pma-v2      qrcode-v2   toto-v1     zest-v1
+
+
+# just type and tab tab twice
+tb app sudo/create test-v1 --
+
+--certbot          --remove           --template=joomla  --template=pma     --webdomain=       --www 
+
+
+### ALL COMANDS HAVE AUTO COMPLETE !!! ###
+
 ```
 
 # Structure of an app

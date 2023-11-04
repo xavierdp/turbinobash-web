@@ -1,15 +1,25 @@
 #!/bin/bash
-#C--# --nginx --apache --hybrid --proxy
+#C--# --nginx --apache --hybrid --proxy --noweb
 
 rm -f /etc/apache2/sites-enabled/*
 rm -f /etc/ngnix/sites-enabled/*
 rm -f /etc/apache2/ports.conf
 
-if [ "$apache" = "on" ]; then
+
+if [ "$noweb" = "on" ]; then
+  
+  service apache2 stop
+  service nginx stop
+fi
+
+
+
+
+if [ "$apache" = "on" || "$noweb" = "on" ]; then
   apt purge -y nginx nginx-core python3-certbot-nginx
 fi
 
-if [[ "$nginx" = "on" || "$proxy" = "on" ]]; then
+if [[ "$nginx" = "on" || "$proxy" = "on" || "$noweb" = "on" ]]; then
   apt purge -y apache2-bin python3-certbot-apache
 fi
 
@@ -46,6 +56,5 @@ if [[ "$hybrid" = "on" || "$apache" = "on" ]]; then
   service apache2 restart
 fi
 
-echo WWW >/var/www/html/index.html
-
 apt autoremove -y
+

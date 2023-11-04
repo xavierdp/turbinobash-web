@@ -1,5 +1,6 @@
 #!/bin/bash
 #C# 7.3 7.4 8.0 8.1 8.2
+#C--# --noweb
 
 tb_getopt php - $@
 

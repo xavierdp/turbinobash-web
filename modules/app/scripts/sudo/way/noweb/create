@@ -1,0 +1,57 @@
+#!/bin/bash
+
+#C# All $(app_list)
+
+mkdir -p /apps
+
+tb_getopt app - $@
+
+[ "$remove" == "on" ] && tb app sudo/way/noweb/remove $app --force
+
+d_app=$d_apps/$app
+
+# user creation fi don't exists
+if ! getent passwd $app &>/dev/null; then
+	useradd -m -s/bin/bash ${app} -d $d_app
+
+	touch /var/mail/${app}
+	chown ${app}: /var/mail/${app}
+fi
+
+# directories creation
+mkdir -pv $d_app/{app/webroot,etc,log,sav,tmp,nosav}
+
+# db user create mariadb db passwd set + db create + grant to user
+if [ -n "$(which mariadb)" ]; then
+	tb mysql sudo/user/create $app
+	tb mysql sudo/user/passwd $app
+	tb mysql sudo/db/create $app
+	tb mysql sudo/grant $app all $app
+fi
+
+mkdir -p $d_app/tmp/sessions
+
+# if user app exists set user & group rights
+if getent passwd $app &>/dev/null; then
+	cd $d_app
+
+	chown $app:www-data .
+	chown $app:www-data * -R
+fi
+
+mkdir -p $d_app/.ssh
+
+touch $d_app/.ssh/authorized_keys
+mkdir -p $d_app/etc/ssh/
+
+if [ ! -e $d_app/etc/ssh/passwd ]; then
+	ssh_passwd=$(gen_urandom_passwd 20)
+	echo $ssh_passwd >$d_app/etc/ssh/passwd
+
+	echo -e "$ssh_passwd\n$ssh_passwd" | passwd $app
+	
+	chmod 2750 $d_app
+fi
+
+tb app sudo/bulldozer $app
+
