@@ -30,7 +30,8 @@ else
 	chown root: $d_app/etc/ssh/passwd
 	chmod 700 $d_app/etc/ssh/
 	chmod 600 $d_app/etc/ssh/*
-	#chmod 2750 $d_app
+	
+	chmod 2750 $d_app
 fi
 
 return 0

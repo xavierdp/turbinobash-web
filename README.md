@@ -375,6 +375,41 @@ wp search-replace "test-v1" "test-v2"
 
 Goto your test-v2 app url https://test-v2.sub.domain.tld/ and the copy is working
 
+### Some can be mixed
+
+```bash
+# NGINX one can be used with
+tb app sudo/create app-v1
+tb app sudo/remoe  app-v1
+
+# because the
+tb app sudo/way/init nginx $email $hostname $php_default_version
+# in each installed script fix the mode
+
+### BUT EXISTS ###
+tb app sudo/way/  ↹ ↹
+
+sudo/way/apache/remove  sudo/way/hybrid/remove  sudo/way/nginx/create   sudo/way/noweb/create   sudo/way/proxy/create
+# show the all way possible and you can mix them when possible
+
+# If you insall th NGINX one, you can use the PROXY WAY or the NOWEB way 
+tb app sudo/way/proxy/create app-v1
+tb app sudo/way/noweb/create app-v1
+
+# if YOU installed the HYNRID one, you can use the PROXY WAY, the NGINX way, or the NOWEB way if you need
+tb app sudo/way/nginx/create app-v1
+tb app sudo/way/proxy/create app-v1
+tb app sudo/way/noweb/create app-v1
+...
+
+```
+
+
+
+
+
+
+
 
 
 

@@ -152,7 +152,6 @@ if [ ! -e $d_app/etc/ssh/passwd ]; then
 	echo -e "$ssh_passwd\n$ssh_passwd" | passwd $app
 fi
 
-tb app sudo/bulldozer $app
 
 if [ -n "$template_make" ]; then
 	[ "$template_make" = "pma" ] && tb template sudo/pma/make $app $php
@@ -161,6 +160,8 @@ fi
 if [ -n "$template" ]; then
 	[ "$template" = "pma" ] && tb template sudo/pma/install $app $php
 fi
+
+tb app sudo/bulldozer $app
 
 # SSL certificate creation
 if [[ "$certbot" = "on" ]]; then
