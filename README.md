@@ -198,6 +198,9 @@ tb app sudo/bulldozer test-v1
 #### Change PHP version
 ```bash
 tb app sudo/change/php test-v1 8.1
+
+# for CLI
+update-alternatives --set php /usr/bin/php8.1
 ```
 
 #### Install php version
