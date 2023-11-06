@@ -216,6 +216,9 @@ tb app sudo/install/wp-cli
 #### Install composer
 ```bash
 tb app sudo/install/composer
+
+# if you need an other version
+composer self-update 1.9.1
 ```
 
 #### Remove an app
