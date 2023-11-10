@@ -33,7 +33,7 @@ mkdir -pv $d_app/{app/webroot,etc/php,log,sav,tmp,nosav}
 echo $php >$d_app/etc/php/version
 
 # db user create mariadb db passwd set + db create + grant to user
-if [ -n "$(which mariadb)" ]; then
+if [ "$nodb" != "on" ]; then
 	tb mysql sudo/user/create $app
 	tb mysql sudo/user/passwd $app
 	tb mysql sudo/db/create $app

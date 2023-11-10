@@ -2,7 +2,7 @@
 
 #C# All $(app_list)
 #C# $(find /usr/bin/ -name "php*.*"| sed 's%/usr/bin/php%%')
-#C--# --certbot	--webdomain --www --remove --template=pma --template=joomla
+#C--# --certbot	--webdomain --www --remove --template=pma --template=joomla --nodb
 
 mkdir -p /apps
 
@@ -30,7 +30,7 @@ mkdir -pv $d_app/{app/webroot,etc/php,log,sav,tmp}
 echo $php >$d_app/etc/php/version
 
 # db user create mariadb db passwd set + db create + grant to user
-if [ -n "$(which mariadb)" ]; then
+if [ "$nodb" != "on" ]; then
 	tb mysql sudo/user/create $app
 	tb mysql sudo/user/passwd $app
 	tb mysql sudo/db/create $app
