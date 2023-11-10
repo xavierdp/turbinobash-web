@@ -33,13 +33,15 @@ mkdir -pv $d_app/{app/webroot,etc/php,log,sav,tmp,nosav}
 echo $php >$d_app/etc/php/version
 
 # db user create mariadb db passwd set + db create + grant to user
-if [ "$nodb" != "on" ]; then
+if [ "$noconfdb" != "on" ]; then
 	tb mysql sudo/user/create $app
 	tb mysql sudo/user/passwd $app
 	tb mysql sudo/db/create $app
 	tb mysql sudo/grant $app all $app
 fi
 
+
+if [ "$noconfwebserver" != "on" ]; then
 # source app confs
 . $TB_MODULE_DIR/templates/apache.conf
 
@@ -62,6 +64,7 @@ fi
 service apache2 reload
 # fi
 cat $f_apache
+fi
 
 # default php index file
 f_index=$d_app/app/webroot/index.php
@@ -69,24 +72,26 @@ if [ ! -e $f_index ]; then
 	echo "$conf_index" >$f_index
 fi
 
-# remove the FPM conf
-for f in $(find /etc/php/ -name 10-${app}.conf); do rm $f; done
+if [ "$noconfphpfppm" != "on" ]; then
+	# remove the FPM conf
+	for f in $(find /etc/php/ -name 10-${app}.conf); do rm $f; done
 
-# FPM conf creation
-f_fpm=/etc/php/${php}/fpm/pool.d/10-${app}.conf
-# if [ ! -e $f_fpm ];
-# then
+	# FPM conf creation
+	f_fpm=/etc/php/${php}/fpm/pool.d/10-${app}.conf
+	# if [ ! -e $f_fpm ];
+	# then
 
-echo "$conf_fpm" >$f_fpm
+	echo "$conf_fpm" >$f_fpm
 
-service php${php}-fpm restart
-# fi
-cat $f_fpm
+	service php${php}-fpm restart
+	# fi
+	cat $f_fpm
 
-# reload all fpm
-for v in $(find /etc/systemd/system -name "php[0-9].*" | sed "s%-fpm.service%%g" | sed "s%.*php%%g"); do
-	service php$v-fpm reload
-done
+	# reload all fpm
+	for v in $(find /etc/systemd/system -name "php[0-9].*" | sed "s%-fpm.service%%g" | sed "s%.*php%%g"); do
+		service php$v-fpm reload
+	done
+fi
 
 mkdir -p $d_app/tmp/sessions
 

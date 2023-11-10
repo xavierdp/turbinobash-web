@@ -2,7 +2,7 @@
 
 #C# All $(app_list)
 #C# $(find /usr/bin/ -name "php*.*"| sed 's%/usr/bin/php%%')
-#C--# --certbot	--webdomain --www --remove --template=pma --template=joomla --nodb
+#C--# --certbot	--webdomain --www --remove --template=pma --template=joomla --noconfdb --noconfwebserver --noconfphpfppm
 
 mkdir -p /apps
 
@@ -30,7 +30,7 @@ mkdir -pv $d_app/{app/webroot,etc/php,log,sav,tmp}
 echo $php >$d_app/etc/php/version
 
 # db user create mariadb db passwd set + db create + grant to user
-if [ "$nodb" != "on" ]; then
+if [ "$noconfdb" != "on" ]; then
 	tb mysql sudo/user/create $app
 	tb mysql sudo/user/passwd $app
 	tb mysql sudo/db/create $app
@@ -45,6 +45,7 @@ f_nginx=/etc/nginx/sites-enabled/10-$app.conf
 # if [ ! -e $f_nginx ];
 # then
 
+if [ "$noconfwebserver" != "on" ]; then
 # if domain came from --options
 if [[ "$dom_from_cl" = "on" ]]; then
 
@@ -55,10 +56,10 @@ if [[ "$dom_from_cl" = "on" ]]; then
 else
 	echo "$conf_nginx_app" >$f_nginx
 fi
-
 service nginx reload
 # fi
 cat $f_nginx
+fi
 
 # default php index file
 f_index=$d_app/app/webroot/index.php
@@ -66,19 +67,23 @@ if [ ! -e $f_index ]; then
 	echo "$conf_index" >$f_index
 fi
 
-# remove the FPM conf
-for f in $(find /etc/php/ -name 10-${app}.conf); do rm $f; done
 
-# FPM conf creation
-f_fpm=/etc/php/${php}/fpm/pool.d/10-${app}.conf
-# if [ ! -e $f_fpm ];
-# then
+if [ "$noconfphpfppm" != "on" ]; then
+	# remove the FPM conf
+	for f in $(find /etc/php/ -name 10-${app}.conf); do rm $f; done
 
-echo "$conf_fpm" >$f_fpm
+	# FPM conf creation
+	f_fpm=/etc/php/${php}/fpm/pool.d/10-${app}.conf
+	# if [ ! -e $f_fpm ];
+	# then
 
-service php${php}-fpm restart
-# fi
-cat $f_fpm
+	echo "$conf_fpm" >$f_fpm
+
+	service php${php}-fpm restart
+	# fi
+	cat $f_fpm
+fi
+
 
 # reload all fpm
 for v in $(find /etc/systemd/system -name "php[0-9].*" | sed "s%-fpm.service%%g" | sed "s%.*php%%g"); do

@@ -1,7 +1,7 @@
 #!/bin/bash
 
 #C# All $(app_list)
-#C--# --nodb
+#C--# --noconfdb
 
 mkdir -p /apps
 
@@ -23,7 +23,7 @@ fi
 mkdir -pv $d_app/{app/webroot,etc,log,sav,tmp,nosav}
 
 # db user create mariadb db passwd set + db create + grant to user
-if [ "$nodb" != "on" ]; then
+if [ "$noconfdb" != "on" ]; then
 	tb mysql sudo/user/create $app
 	tb mysql sudo/user/passwd $app
 	tb mysql sudo/db/create $app
