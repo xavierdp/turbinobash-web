@@ -46,6 +46,8 @@ cd turbinobash-web/scripts
 # johndoe@domain.tld is the email to use with letsencrypt
 # sub.mydomain.tld is the sub domain pluged with the container's IP
 
+# Theses is configuring the defaults for later uses :
+
 # NGINX
 bash nginx.sh johndoe@domain.tld sub.mydomain.tld
 
