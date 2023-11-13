@@ -77,15 +77,17 @@ bash noweb.sh
 
 ### apt purge
 
-if you start lauch nginx.sh and after apache.sh, the nginx things are purged
+If you start lauch nginx.sh and after apache.sh, the nginx things are purged
 
-if you start lauch apache.sh and after nginx.sh, the apache things are purged
+If you start lauch apache.sh and after nginx.sh, the apache things are purged
 
-if you start lauch apache.sh or nginx.sh and after proxy.sh, the apache and mariadb things are purged
+If you start lauch apache.sh or nginx.sh and after proxy.sh, the apache and mariadb things are purged
 
 ### Usage for NGINX, APACHE or PROXY
 ```bash
-# create test-v1.sub.mydomain.tld with SSL
+You have to install he good script to use the default way as theses :
+
+# create test-v1.sub.mydomain.tld with SSL 
 tb app sudo/create test-v1 --certbot
 
 # create sub.myotherdomain.tld with SSL
@@ -95,8 +97,13 @@ tb app sudo/create test-v1 --certbot --webdomain=sub.myotherdomain.tld
 tb app sudo/create test-v1 --certbot --webdomain=sub.myotherdomain.tld --www
 
 # create a proxy towards a destination
-tb app sudo/way/proxy/create test-v1 https://127.0.0.1/ --certbot
+tb app sudo/create test-v1 https://127.0.0.1/ --certbot
 
+# create a system application for CRON usage for example
+tb app sudo/create test-v1 --certbot --webdomain=sub.myotherdomain.tld --www
+
+# so, if you need an other way from the default one you can use
+tb app sudo/way/xxxx/create ...
 
 ```
 
@@ -173,7 +180,7 @@ define( 'DB_PASSWORD', trim(file_get_contents("/apps/$_SERVER[USER]/etc/mysql/lo
 define( 'DB_HOST', 'localhost' );
 ```
 
-### So each app is movable !!
+### So each app is transportable !!
 
 you make a test-v2
 
