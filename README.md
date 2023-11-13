@@ -87,7 +87,7 @@ If you start lauch apache.sh or nginx.sh and after proxy.sh, the apache and mari
 
 ### Usage for NGINX, APACHE or PROXY
 ```bash
-You have to install he good script to use the default way as theses :
+# You have to install the good script to use the default way like theses :
 
 # create test-v1.sub.mydomain.tld with SSL 
 tb app sudo/create test-v1 --certbot
