@@ -1,9 +1,18 @@
 #!/bin/bash
 
 #C# $(mysql_db_list)
-tb_getopt db_name - $@
+tb_getopt db_name  table= - $@
 
-# mysqldump --skip-lock-tables  -u$(id -u -n)  -p$(cat ~/etc/mysql/localhost/passwd) $@
 mysqldump --skip-lock-tables  -u$(id -u -n)  $@
+
+
+if [ -e ~/etc/mysql/localhost/passwd ]
+then
+  mysqldump  -u$(id -u -n)  -p$(cat ~/etc/mysql/localhost/passwd) --skip-lock-tables $db_name $table | sed -e '/^\/\*!/d' -e '/^--/d' -e 's%EXISTS `%EXISTS `'$prefix'%g' -e 's%TABLE `%TABLE `'$prefix'%g'
+elif [ -e ~/.my.cnf ]
+then
+  mysqldump  -u$(id -u -n) --skip-lock-tables $db_name $table | sed -e '/^\/\*!/d' -e '/^--/d' -e 's%EXISTS `%EXISTS `'$prefix'%g' -e 's%TABLE `%TABLE `'$prefix'%g'
+fi
+
 
 return 0
