@@ -61,7 +61,11 @@ bash proxy.sh johndoe@domain.tld sub.mydomain.tld
 # Only system NOWEB for stand alone CRON for example
 bash noweb.sh
 
+# Once the script has finished, quit BASH and enter again in your SHELL : it enabling TURBINOBASH completion !!!
+
 ```
+
+
 
 ### Set your DNS entries in the domain zone
 
