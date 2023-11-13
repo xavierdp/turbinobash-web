@@ -85,13 +85,15 @@ if you start lauch apache.sh or nginx.sh and after proxy.sh, the apache and mari
 tb app sudo/create test-v1 --certbot
 
 # create sub.myotherdomain.tld with SSL
-tb app sudo/create test-v1 --certbot --webdomain sub.myotherdomain.tld
+tb app sudo/create test-v1 --certbot --webdomain=sub.myotherdomain.tld
 
 # create sub.myotherdomain.tld and www.sub.myotherdomain.tld with SSL
-tb app sudo/create test-v1 --certbot --webdomain sub.myotherdomain.tld --www
+tb app sudo/create test-v1 --certbot --webdomain=sub.myotherdomain.tld --www
 
 # create a proxy towards a destination
 tb app sudo/way/proxy/create test-v1 https://127.0.0.1/ --certbot
+
+
 ```
 
 ### Turbinobash auto complete !!!
