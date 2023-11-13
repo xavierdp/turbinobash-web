@@ -116,7 +116,6 @@ tb app sudo/way/xxxx/create ...
 # just type and tab tab twice
 tb app ↹ ↹ 
 
-
 sudo/backup              sudo/info                sudo/install/mariadb     sudo/way/apache/create   sudo/way/noweb/remove
 sudo/bulldozer           sudo/install/base        sudo/install/php         sudo/way/apache/remove   sudo/way/proxy/create
 sudo/change/php          sudo/install/composer    sudo/install/ssl         sudo/way/hybrid/create   sudo/way/proxy/remove
