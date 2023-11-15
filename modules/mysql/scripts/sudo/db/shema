@@ -6,12 +6,12 @@
 
 tb_getopt db_name table= - $@
 
-if [ -e ~/etc/mysql/localhost/passwd ]
+if [ -e ~/.my.cnf ]
 then
-  mysqldump  -u$(id -u -n)  -p$(cat ~/etc/mysql/localhost/passwd) --no-data $db_name $table | sed -e '/^\/\*!/d' -e '/^--/d' -e 's%EXISTS `%EXISTS `'$prefix'%g' -e 's%TABLE `%TABLE `'$prefix'%g'
-elif [ -e ~/.my.cnf ]
+  mysqldump  -u$(id -u -n) --no-data $@ | sed -e '/^\/\*!/d' -e '/^--/d' -e 's%EXISTS `%EXISTS `'$prefix'%g' -e 's%TABLE `%TABLE `'$prefix'%g'
+elif [ -e ~/etc/mysql/localhost/passwd ]
 then
-  mysqldump  -u$(id -u -n) --no-data $db_name $table | sed -e '/^\/\*!/d' -e '/^--/d' -e 's%EXISTS `%EXISTS `'$prefix'%g' -e 's%TABLE `%TABLE `'$prefix'%g'
+  mysqldump  -u$(id -u -n)  -p$(cat ~/etc/mysql/localhost/passwd) --no-data $@ | sed -e '/^\/\*!/d' -e '/^--/d' -e 's%EXISTS `%EXISTS `'$prefix'%g' -e 's%TABLE `%TABLE `'$prefix'%g'
 fi
 
 
