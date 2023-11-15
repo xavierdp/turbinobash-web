@@ -46,6 +46,8 @@ cd turbinobash-web/scripts
 # johndoe@domain.tld is the email to use with letsencrypt
 # sub.mydomain.tld is the sub domain pluged with the container's IP
 
+# Theses is configuring the defaults for later uses :
+
 # NGINX
 bash nginx.sh johndoe@domain.tld sub.mydomain.tld
 
@@ -61,7 +63,11 @@ bash proxy.sh johndoe@domain.tld sub.mydomain.tld
 # Only system NOWEB for stand alone CRON for example
 bash noweb.sh
 
+# Once the script has finished, quit BASH and enter again in your SHELL : it enabling TURBINOBASH completion !!!
+
 ```
+
+
 
 ### Set your DNS entries in the domain zone
 
@@ -73,25 +79,34 @@ bash noweb.sh
 
 ### apt purge
 
-if you start lauch nginx.sh and after apache.sh, the nginx things are purged
+If you start lauch nginx.sh and after apache.sh, the nginx things are purged
 
-if you start lauch apache.sh and after nginx.sh, the apache things are purged
+If you start lauch apache.sh and after nginx.sh, the apache things are purged
 
-if you start lauch apache.sh or nginx.sh and after proxy.sh, the apache and mariadb things are purged
+If you start lauch apache.sh or nginx.sh and after proxy.sh, the apache and mariadb things are purged
 
 ### Usage for NGINX, APACHE or PROXY
 ```bash
-# create test-v1.sub.mydomain.tld with SSL
+# You have to install the good script to use the default way like theses :
+
+# create test-v1.sub.mydomain.tld with SSL 
 tb app sudo/create test-v1 --certbot
 
 # create sub.myotherdomain.tld with SSL
-tb app sudo/create test-v1 --certbot --webdomain sub.myotherdomain.tld
+tb app sudo/create test-v1 --certbot --webdomain=sub.myotherdomain.tld
 
 # create sub.myotherdomain.tld and www.sub.myotherdomain.tld with SSL
-tb app sudo/create test-v1 --certbot --webdomain sub.myotherdomain.tld --www
+tb app sudo/create test-v1 --certbot --webdomain=sub.myotherdomain.tld --www
 
 # create a proxy towards a destination
-tb app sudo/way/proxy/create test-v1 https://127.0.0.1/ --certbot
+tb app sudo/create test-v1 https://127.0.0.1/ --certbot
+
+# create a system application for CRON usage for example
+tb app sudo/create test-v1 --certbot --webdomain=sub.myotherdomain.tld --www
+
+# so, if you need an other way from the default one you can use
+tb app sudo/way/xxxx/create ...
+
 ```
 
 ### Turbinobash auto complete !!!
@@ -100,7 +115,6 @@ tb app sudo/way/proxy/create test-v1 https://127.0.0.1/ --certbot
 
 # just type and tab tab twice
 tb app ↹ ↹ 
-
 
 sudo/backup              sudo/info                sudo/install/mariadb     sudo/way/apache/create   sudo/way/noweb/remove
 sudo/bulldozer           sudo/install/base        sudo/install/php         sudo/way/apache/remove   sudo/way/proxy/create
@@ -167,7 +181,7 @@ define( 'DB_PASSWORD', trim(file_get_contents("/apps/$_SERVER[USER]/etc/mysql/lo
 define( 'DB_HOST', 'localhost' );
 ```
 
-### So each app is movable !!
+### So each app is transportable !!
 
 you make a test-v2
 
