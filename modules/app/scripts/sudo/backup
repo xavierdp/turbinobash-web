@@ -10,8 +10,8 @@ d_sav1=/var/sav1/$(hostname)
 mkdir -p $d_sav1/{auto,system}
 
 
-backs_auto=15
-backs_sytem=15
+backs_auto=7
+backs_sytem=7
 
 [ -e /etc/tb/backup ] && . /etc/tb/backup
 
