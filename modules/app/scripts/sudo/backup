@@ -9,12 +9,10 @@ date=$(date +'%y-%m-%d-%HH%M')
 d_sav1=/var/sav1/$(hostname)
 mkdir -p $d_sav1/{auto,system}
 
-
 backs_auto=7
 backs_sytem=7
 
 [ -e /etc/tb/backup ] && . /etc/tb/backup
-
 
 nosav="--exclude=./nosav"
 [ "$nonosav" = "on" ] && nosav=""
@@ -54,8 +52,6 @@ if [ "$app" = All ]; then
 	done
 	echo
 
-
-	
 	date
 	echo "############## ALL APPs ##############"
 	for app in $(app_list); do
@@ -64,13 +60,11 @@ if [ "$app" = All ]; then
 		echo "############## $dir"
 
 		mkdir -p $dir
-		tar cjf $dir/$app.tar.bz2 $nosav -C /apps/$app . 
+		tar cjf $dir/$app.tar.bz2 $nosav -C /apps/$app .
 
 		cp -r /var/spool/cron/crontabs/ $dir/
 
 	done
-		
-
 
 	date
 	for i in $(app_list) $(tb mysql sudo/db/list); do
@@ -85,7 +79,7 @@ else
 	if [[ "$type" = "All" || "$type" = "app" ]]; then
 		echo "############## MANUAL $app APP $dir/$app.tar.bz2"
 		tar cjf $dir/$app.tar.bz2 $nosav -C /apps/$app .
-		[ -e /var/spool/cron/crontabs/$app ]	&&	cp -vf /var/spool/cron/crontabs/$app $dir/crontab
+		[ -e /var/spool/cron/crontabs/$app ] && cp -vf /var/spool/cron/crontabs/$app $dir/crontab
 	fi
 
 	if [[ "$type" = "All" || "$type" = "db" ]]; then
