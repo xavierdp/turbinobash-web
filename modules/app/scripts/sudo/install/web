@@ -5,17 +5,13 @@ rm -f /etc/apache2/sites-enabled/*
 rm -f /etc/ngnix/sites-enabled/*
 rm -f /etc/apache2/ports.conf
 
-
 if [ "$noweb" = "on" ]; then
-  
+
   service apache2 stop
   service nginx stop
 fi
 
-
-
-
-if [ "$apache" = "on" || "$noweb" = "on" ]; then
+if [[ "$apache" = "on" || "$noweb" = "on" ]]; then
   apt purge -y nginx nginx-core python3-certbot-nginx
 fi
 
@@ -57,4 +53,3 @@ if [[ "$hybrid" = "on" || "$apache" = "on" ]]; then
 fi
 
 apt autoremove -y
-
