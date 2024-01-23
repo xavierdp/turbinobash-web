@@ -13,7 +13,7 @@ Comptatible with Debian 11 (PHP packages.sury.org is missing form Debian 12) et 
 **turbinobash-web** is a combination of 4 modules
 * module : to manage modules
 * app : to manage applications
-* mysql : to manage mysq databases things
+* mysql : to manage mysql databases things
 * template : to manage templates used with app
 
 The most used module by user admin is app
