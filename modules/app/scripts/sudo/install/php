@@ -4,11 +4,14 @@
 
 tb_getopt php - $@
 
-apt install ca-certificates apt-transport-https gnupg2 libmemcached11 -y
+apt install ca-certificates lsb-release apt-transport-https gnupg2 libmemcached11 -y
 
 if lsb_release -i | grep Debian; then
 	wget -q https://packages.sury.org/php/apt.gpg -O- | apt-key add -
-	echo "deb https://packages.sury.org/php/ bullseye main" | tee /etc/apt/sources.list.d/php.list
+	curl -sSLo /tmp/debsuryorg-archive-keyring.deb https://packages.sury.org/debsuryorg-archive-keyring.deb
+	dpkg -i /tmp/debsuryorg-archive-keyring.deb
+	echo "deb [signed-by=/usr/share/keyrings/deb.sury.org-php.gpg] https://packages.sury.org/php/ $(lsb_release -sc) main" >/etc/apt/sources.list.d/php.list
+
 	install="phpX phpX-bz2 phpX-cli phpX-common phpX-apcu phpX-bcmath phpX-curl phpX-fpm phpX-intl phpX-json phpX-mbstring phpX-mysql phpX-opcache phpX-readline phpX-xml phpX-zip phpX-memcache phpX-mongodb phpX-redis phpX-ssh2 phpX-tidy phpX-uploadprogress phpX-yaml phpX-xml phpX-intl phpX-gd phpX-imagick"
 else
 	LC_ALL=C.UTF-8 add-apt-repository -y ppa:ondrej/php
