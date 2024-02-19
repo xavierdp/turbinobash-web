@@ -1,4 +1,4 @@
-curl -s https://packages.microsoft.com/keys/microsoft.asc | sudo apt-key add -
+curl -s https://packages.microsoft.com/keys/microsoft.asc | apt-key add -
 curl -s https://packages.microsoft.com/config/debian/10/prod.list >/etc/apt/sources.list.d/mssql-release.list
 
 apt -y update
