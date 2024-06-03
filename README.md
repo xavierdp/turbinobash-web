@@ -174,7 +174,7 @@ root@test0:/apps/test-v1# tree
 
 
 ```php
-// wordperss wp-config usage 
+// wordpress wp-config usage 
 define( 'DB_NAME', $_SERVER["USER"]);
 define( 'DB_USER', $_SERVER["USER"]);
 define( 'DB_PASSWORD', trim(file_get_contents("/apps/$_SERVER[USER]/etc/mysql/localhost/passwd")));
@@ -358,6 +358,8 @@ define( 'DB_NAME', $_SERVER["USER"]);
 define( 'DB_USER', $_SERVER["USER"]);
 define( 'DB_PASSWORD', trim(file_get_contents("/apps/$_SERVER[USER]/etc/mysql/localhost/passwd")));
 define( 'DB_HOST', 'localhost' );
+
+define('FS_METHOD', 'direct');
 ```
 
 Goto your test-v1 app url https://test-v1.sub.domain.tld/ and finish the install
