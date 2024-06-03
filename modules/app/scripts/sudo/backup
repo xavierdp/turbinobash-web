@@ -48,7 +48,7 @@ if [ "$app" = All ]; then
 		echo "############## $dir"
 		mkdir -p $dir
 
-		tb mysql sudo/db/dump $i | bzip2 >$dir/$i.sql.bz2
+		tb mysql sudo/db/dump --triggers --routines $i | bzip2 >$dir/$i.sql.bz2
 	done
 	echo
 
@@ -84,7 +84,7 @@ else
 
 	if [[ "$type" = "All" || "$type" = "db" ]]; then
 		echo "############## MANUAL $app DB $dir/$app.sql.bz2"
-		tb mysql sudo/db/dump $app | bzip2 >$dir/$app.sql.bz2
+		tb mysql sudo/db/dump --triggers --routines $app | bzip2 >$dir/$app.sql.bz2
 	fi
 
 	echo
