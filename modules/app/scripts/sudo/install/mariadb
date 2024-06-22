@@ -1,4 +1,30 @@
 #!/bin/bash
+#C# --last
+
+if [ "$last" == "on" ]; then
+  apt install apt-transport-https lsb_release curl -y
+
+  release_id=$(lsb_release -i -s)
+  release_code=$(lsb_release -c -s)
+
+  mkdir -p /etc/apt/keyrings
+  curl -o /etc/apt/keyrings/mariadb-keyring.pgp 'https://mariadb.org/mariadb_release_signing_key.pgp'
+
+  if [ "$release_id" == "Ubuntu" ]; then
+    echo "
+      X-Repolib-Name: MariaDB
+      Types: deb
+      URIs: https://mirror.mva-n.net/mariadb/repo/11.4/ubuntu
+      Suites: $release_code
+      Components: main main/debug
+      Signed-By: /etc/apt/keyrings/mariadb-keyring.pgp
+    " >/etc/apt/sources.list.d/mariadb.sources
+  else
+    echo "
+        deb [signed-by=/etc/apt/keyrings/mariadb-keyring.pgp] https://mirror.mva-n.net/mariadb/repo/11.4/debian bookworm main
+      " >/etc/apt/sources.list.d/mariadb.sources
+  fi
+fi
 
 apt install -y mariadb-server
 
