@@ -11,16 +11,11 @@ if [ "$last" == "on" ]; then
 
   if [ "$ID" == "Ubuntu" ]; then
     echo "
-      X-Repolib-Name: MariaDB
-      Types: deb
-      URIs: https://mirror.mva-n.net/mariadb/repo/11.4/ubuntu
-      Suites: $VERSION_CODENAME
-      Components: main main/debug
-      Signed-By: /etc/apt/keyrings/mariadb-keyring.pgp
+deb [signed-by=/etc/apt/keyrings/mariadb-keyring.pgp] https://deb.mariadb.org/11.4/ubuntu $VERSION_CODENAME main
     " >/etc/apt/sources.list.d/mariadb.list
   else
     echo "
-        deb [signed-by=/etc/apt/keyrings/mariadb-keyring.pgp] https://mirror.mva-n.net/mariadb/repo/11.4/debian $VERSION_CODENAME main
+deb [signed-by=/etc/apt/keyrings/mariadb-keyring.pgp] https://mirror.mva-n.net/mariadb/repo/11.4/debian $VERSION_CODENAME main
       " >/etc/apt/sources.list.d/mariadb.list
   fi
 
