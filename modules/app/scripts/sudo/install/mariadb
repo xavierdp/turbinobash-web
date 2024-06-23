@@ -9,7 +9,7 @@ if [ "$last" == "on" ]; then
   mkdir -p /etc/apt/keyrings
   curl -o /etc/apt/keyrings/mariadb-keyring.pgp 'https://mariadb.org/mariadb_release_signing_key.pgp'
 
-  if [ "$ID" == "Ubuntu" ]; then
+  if [ "$ID" == "ubuntu" ]; then
     echo "
 deb [signed-by=/etc/apt/keyrings/mariadb-keyring.pgp] https://deb.mariadb.org/11.4/ubuntu $VERSION_CODENAME main
     " >/etc/apt/sources.list.d/mariadb.list
