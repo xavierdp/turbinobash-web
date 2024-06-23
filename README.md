@@ -235,6 +235,15 @@ tb app sudo/install/composer
 composer self-update 1.9.1
 ```
 
+
+#### Install last MARIADB version
+```bash
+tb app sudo/install/mariadb --last
+```
+
+
+
+
 #### Remove an app
 ```bash
 tb app sudo/remove test-v1

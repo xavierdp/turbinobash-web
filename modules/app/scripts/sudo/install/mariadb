@@ -24,4 +24,4 @@ fi
 
 apt install -y mariadb-server
 
-tb mysql sudo/install/root --force
+[ ! -f /root/.my.cnf ] && tb mysql sudo/install/root --force
