@@ -17,12 +17,14 @@ if [ "$last" == "on" ]; then
       Suites: $VERSION_CODENAME
       Components: main main/debug
       Signed-By: /etc/apt/keyrings/mariadb-keyring.pgp
-    " >/etc/apt/sources.list.d/mariadb.sources
+    " >/etc/apt/sources.list.d/mariadb.list
   else
     echo "
         deb [signed-by=/etc/apt/keyrings/mariadb-keyring.pgp] https://mirror.mva-n.net/mariadb/repo/11.4/debian $VERSION_CODENAME main
-      " >/etc/apt/sources.list.d/mariadb.sources
+      " >/etc/apt/sources.list.d/mariadb.list
   fi
+
+  apt update -y
 fi
 
 apt install -y mariadb-server
