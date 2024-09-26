@@ -1,0 +1,22 @@
+#C# All $(app_list)
+
+email=$(cat /conf/email)
+
+tb_getopt app - $@
+
+if [[ "$app" = "All" ]]; then
+  for app in $(app_list); do
+    echo ##### $app #####
+    tb app sudo/way/nginx/certbot $app
+  done
+else
+  DOMAINS=$(grep -h server_name /etc/nginx/sites-enabled/10-$app.conf | sed "s%server_name %%g" | sed "s%;%%g" | uniq | tr ' ' '\n' | sed '/^$/d')
+
+  for DOMAIN in $DOMAINS; do
+    CERTBOT_CMD+=" -d $DOMAIN"
+  done
+
+  certbot run -n --expand --nginx --agree-tos $CERTBOT_CMD -m certbot_email=$email --redirect
+
+  service nginx restart
+fi
