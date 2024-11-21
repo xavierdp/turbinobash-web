@@ -40,15 +40,13 @@ if [ "$noconfdb" != "on" ]; then
 	tb mysql sudo/grant $app all $app
 fi
 
-
 if [ "$noconfwebserver" != "on" ]; then
 
-mkdir -p /etc/letsencrypt
+	mkdir -p /etc/letsencrypt
 
-# source app confs
-if [ "$wildcard" = "on" ]
-then
-echo "ssl_session_cache shared:le_nginx_SSL:10m;
+	# source app confs
+	if [ "$wildcard" = "on" ]; then
+		echo "ssl_session_cache shared:le_nginx_SSL:10m;
 ssl_session_timeout 1440m;
 ssl_session_tickets off;
 
@@ -57,30 +55,30 @@ ssl_prefer_server_ciphers off;
 
 ssl_ciphers 'ECDHE-ECDSA-AES128-GCM-SHA256:ECDHE-RSA-AES128-GCM-SHA256:ECDHE-ECDSA-AES256-GCM-SHA384:ECDHE-RSA-AES256-GCM-SHA384:ECDHE-ECDSA-CHACHA20-POLY1305:ECDHE-RSA-CHACHA20-POLY1305:DHE-RSA-AES128-GCM-SHA256:DHE-RSA-AES256-GCM-SHA384';
 
-" > /etc/letsencrypt/options-ssl-nginx.conf
-. $TB_MODULE_DIR/templates/apache-wildcard.conf
-else
-. $TB_MODULE_DIR/templates/apache.conf
-fi
+" >/etc/letsencrypt/options-ssl-nginx.conf
+		. $TB_MODULE_DIR/templates/apache-wildcard.conf
+	else
+		. $TB_MODULE_DIR/templates/apache.conf
+	fi
 
-# apache2 conf path
-# if [ ! -e $f_apache ];
-# then
-f_apache=/etc/apache2/sites-enabled/10-$app.conf
-# if domain came from --options
-if [[ "$dom_from_cl" = "on" ]]; then
+	# apache2 conf path
+	# if [ ! -e $f_apache ];
+	# then
+	f_apache=/etc/apache2/sites-enabled/10-$app.conf
+	# if domain came from --options
+	if [[ "$dom_from_cl" = "on" ]]; then
 
-	echo "$conf_apache_dom" >$f_apache
+		echo "$conf_apache_dom" >$f_apache
 
-	# add www if option --www
-	[ "$www" = "on" ] && echo "$conf_apache_dom_www" >$f_apache
-else
-	echo "$conf_apache_app" >$f_apache
-fi
+		# add www if option --www
+		[ "$www" = "on" ] && echo "$conf_apache_dom_www" >$f_apache
+	else
+		echo "$conf_apache_app" >$f_apache
+	fi
 
-service apache2 reload
-# fi
-cat $f_apache
+	service apache2 reload
+	# fi
+	cat $f_apache
 fi
 
 # default php index file
@@ -134,14 +132,12 @@ if [ ! -e $d_app/etc/ssh/passwd ]; then
 	# chmod 2750 $d_app
 fi
 
-
 if [ -n "$template" ]; then
 	[ "$template" = "pma" ] && tb template sudo/$template/install $app
 	[ "$template" = "joomla" ] && tb template sudo/$template/install $app
 fi
 
 tb app sudo/bulldozer $app
-
 
 # SSL certificate creation
 if [[ "$certbot" = "on" ]]; then
