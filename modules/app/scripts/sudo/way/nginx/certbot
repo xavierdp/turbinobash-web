@@ -10,13 +10,15 @@ if [[ "$app" = "All" ]]; then
     tb app sudo/way/nginx/certbot $app
   done
 else
-  DOMAINS=$(grep -h server_name /etc/nginx/sites-enabled/10-$app.conf | sed "s%server_name %%g" | sed "s%;%%g" | uniq | tr ' ' '\n' | sed '/^$/d')
+  if [[ -e /etc/nginx/sites-enabled/10-$app.conf ]]; then
+    DOMAINS=$(grep -h server_name /etc/nginx/sites-enabled/10-$app.conf | sed "s%server_name %%g" | sed "s%;%%g" | uniq | tr ' ' '\n' | sed '/^$/d')
 
-  for DOMAIN in $DOMAINS; do
-    CERTBOT_CMD+=" -d $DOMAIN"
-  done
+    for DOMAIN in $DOMAINS; do
+      CERTBOT_CMD+=" -d $DOMAIN"
+    done
 
-  certbot run -n --expand --nginx --agree-tos $CERTBOT_CMD -m certbot_email=$email --redirect
+    certbot run -n --expand --nginx --agree-tos $CERTBOT_CMD -m certbot_email=$email --redirect
 
-  service nginx restart
+    service nginx relaod
+  fi
 fi
