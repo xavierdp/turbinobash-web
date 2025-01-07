@@ -19,6 +19,6 @@ else
 
     certbot run -n --expand --nginx --agree-tos $CERTBOT_CMD -m certbot_email=$email --redirect
 
-    service nginx relaod
+    service nginx reload
   fi
 fi
