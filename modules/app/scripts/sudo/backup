@@ -34,7 +34,7 @@ if [ "$app" = All ]; then
 		echo "############## $dir/$i ##############"
 		mkdir -p $dir
 
-		tar cjf $dir/$i.tar.bz2 --exclude=./.vscode-server --exclude=./.local -C /$i . | true
+		tar cjf $dir/$i.tar.bz2 --exclude=./.vscode-server --exclude=./.windsurf-server --exclude=./.codeium --exclude=./.local -C /$i . | true
 	done
 	echo
 
