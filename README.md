@@ -423,7 +423,7 @@ tb app sudo/way/init nginx $email $hostname $php_default_version
 # in each installed script fix the mode
 
 ### BUT EXISTS ###
-tb app sudo/way/  ↹ ↹
+tb app sudo/way/  ↹ ↹ (TAB TAB)
 
 sudo/way/apache/remove  sudo/way/hybrid/remove  sudo/way/nginx/create   sudo/way/noweb/create   sudo/way/proxy/create
 # show the all way possible and you can mix them when possible
