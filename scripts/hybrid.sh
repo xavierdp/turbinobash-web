@@ -16,7 +16,7 @@ else
   hostname=$2
 fi
 
-php_default_version=7.4
+php_default_version=8.3
 
 export DEBIAN_FRONTEND=noninteractive
 
@@ -28,8 +28,8 @@ bash ../modules/module/wrappers/install
 
 tb app sudo/install/base
 tb app sudo/install/mariadb
-tb app sudo/install/php 7.4
-tb app sudo/install/php 8.1
+tb app sudo/install/php 8.3
+tb app sudo/install/php 8.4
 tb app sudo/install/web --hybrid
 tb app sudo/install/ssl $hostname --hybrid
 tb app sudo/way/init hybrid $email $hostname $php_default_version
@@ -37,8 +37,8 @@ tb app sudo/install/files
 
 service apache2 restart
 service nginx restart
-service php7.4-fpm restart
-service php8.1-fpm restart
+service php8.3-fpm restart
+service php8.4-fpm restart
 service mariadb restart
 
 echo "# quit shell and comeback to enable tb completion"

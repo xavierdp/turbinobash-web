@@ -1,7 +1,9 @@
 #!/bin/bash
-#C# --last
+#C# --system
 
-if [ "$last" == "on" ]; then
+# Par défaut, on installe MariaDB 11.4 LTS depuis les dépôts officiels
+# Utiliser --system pour installer depuis les dépôts système
+if [ "$system" != "on" ]; then
   apt install apt-transport-https curl -y
 
   source /etc/os-release
@@ -15,8 +17,8 @@ deb [signed-by=/etc/apt/keyrings/mariadb-keyring.pgp] https://deb.mariadb.org/11
     " >/etc/apt/sources.list.d/mariadb.list
   else
     echo "
-deb [signed-by=/etc/apt/keyrings/mariadb-keyring.pgp] https://mirror.mva-n.net/mariadb/repo/11.4/debian $VERSION_CODENAME main
-      " >/etc/apt/sources.list.d/mariadb.list
+deb [signed-by=/etc/apt/keyrings/mariadb-keyring.pgp] https://deb.mariadb.org/11.4/debian $VERSION_CODENAME main
+    " >/etc/apt/sources.list.d/mariadb.list
   fi
 
   apt update -y
