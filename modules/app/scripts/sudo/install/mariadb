@@ -26,4 +26,15 @@ fi
 
 apt install -y mariadb-server
 
+# Désactiver les plugins de compression non disponibles dans MariaDB 11.4
+# Ces fichiers de configuration causent des erreurs au démarrage
+for provider in provider_bzip2 provider_lz4 provider_lzma provider_lzo provider_snappy; do
+  if [ -f /etc/mysql/mariadb.conf.d/${provider}.cnf ]; then
+    mv /etc/mysql/mariadb.conf.d/${provider}.cnf /etc/mysql/mariadb.conf.d/${provider}.cnf.disabled 2>/dev/null || true
+  fi
+done
+
+# Redémarrer MariaDB pour appliquer les changements
+systemctl restart mariadb 2>/dev/null || service mariadb restart 2>/dev/null || true
+
 [ ! -f /root/.my.cnf ] && tb mysql sudo/install/root --force
