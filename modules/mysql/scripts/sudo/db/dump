@@ -6,10 +6,17 @@
 
 tb_getopt db_name table= - $@
 
+# Use mariadb-dump if available, fallback to mysqldump for compatibility
+if command -v mariadb-dump >/dev/null 2>&1 || [ -x /usr/bin/mariadb-dump ]; then
+  MYSQLDUMP_CMD=$(command -v mariadb-dump 2>/dev/null || echo /usr/bin/mariadb-dump)
+else
+  MYSQLDUMP_CMD=mysqldump
+fi
+
 if [ -e ~/.my.cnf ]; then
-  mysqldump -u$(id -u -n) --skip-lock-tables $@ | sed -e '/^\/\*!/d' -e '/^--/d' -e 's%EXISTS `%EXISTS `'$prefix'%g' -e 's%TABLE `%TABLE `'$prefix'%g'
+  $MYSQLDUMP_CMD -u$(id -u -n) --skip-lock-tables $@ | sed -e '/^\/\*!/d' -e '/^--/d' -e 's%EXISTS `%EXISTS `'$prefix'%g' -e 's%TABLE `%TABLE `'$prefix'%g'
 elif [ -e ~/etc/mysql/localhost/passwd ]; then
-  mysqldump -u$(id -u -n) -p$(cat ~/etc/mysql/localhost/passwd) --skip-lock-tables $@ | sed -e '/^\/\*!/d' -e '/^--/d' -e 's%EXISTS `%EXISTS `'$prefix'%g' -e 's%TABLE `%TABLE `'$prefix'%g'
+  $MYSQLDUMP_CMD -u$(id -u -n) -p$(cat ~/etc/mysql/localhost/passwd) --skip-lock-tables $@ | sed -e '/^\/\*!/d' -e '/^--/d' -e 's%EXISTS `%EXISTS `'$prefix'%g' -e 's%TABLE `%TABLE `'$prefix'%g'
 fi
 
 return 0

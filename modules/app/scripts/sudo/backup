@@ -34,7 +34,7 @@ if [ "$app" = All ]; then
 		echo "############## $dir/$i ##############"
 		mkdir -p $dir
 
-		tar cjf $dir/$i.tar.bz2 --exclude=./.vscode-server --exclude=./.windsurf-server --exclude=./.codeium --exclude=./.local -C /$i . | true
+		tar cjf $dir/$i.tar.bz2 --exclude=./.vscode-server --exclude=./.windsurf-server --exclude=./.codeium --exclude=./.local --exclude=./.npm --exclude='./.*-server' --exclude='./.*-server/*' -C /$i . | true
 	done
 	echo
 
@@ -62,7 +62,7 @@ if [ "$app" = All ]; then
 		mkdir -p $dir
 		tar cjf $dir/$app.tar.bz2 $nosav -C /apps/$app .
 
-		cp -r /var/spool/cron/crontabs/ $dir/
+		[ -d /var/spool/cron/crontabs ] && cp -r /var/spool/cron/crontabs/ $dir/
 
 	done
 
