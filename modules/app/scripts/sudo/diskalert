@@ -23,7 +23,8 @@ tb_getopt email - $@
 md5File=${0//\.*/}.md5
 
 # test if all partiion space disk is over 85 %
-DF=$(df -h -P | column -t | grep "8[5-9]%\|9[0-9]%\|100%")
+# exclude /dev/loop (snap) devices which are always at 100%
+DF=$(df -h -P | column -t | grep "8[5-9]%\|9[0-9]%\|100%" | grep -v "^/dev/loop")
 
 if [[ -n "$DF" ]]; then
   md5=$(echo "$DF" | md5sum | sed "s% *-%%")
